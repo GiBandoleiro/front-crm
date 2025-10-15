@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Central – Kanban Pro</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Litepicker for Date Picking -->
+  <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+
+  <!-- Lucide Icons (fixed version and defer) -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.309.0/dist/umd/lucide.min.js"></script>
+
+  <!-- SortableJS for Drag & Drop (fixed version) -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  
+  <!-- Day.js for Date Manipulation -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isoWeek.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/pt-br.js"></script>
+
+  <!-- Custom Styles and Tailwind Config -->
+  <style type="text/tailwindcss">
+    @layer base {
+      :root {
+        --color-base: #F8FAFC;
+        --color-panel: #FFFFFF;
+        --color-text: #0F172A;
+        --color-secondary: #475569;
+        --color-border: #E2E8F0;
+        --color-blue: #3B82F6;
+        --color-hover: #f1f5f9;
+      }
+      .dark {
+        --color-base: #0F172A;
+        --color-panel: #1E293B;
+        --color-text: #F8FAFC;
+        --color-secondary: #94A3B8;
+        --color-border: #334155;
+        --color-blue: #3B82F6;
+        --color-hover: #334155;
+      }
+      body {
+        @apply bg-base text-text font-sans antialiased;
+      }
+      .kanban-card.sortable-ghost {
+        @apply !bg-blue-500/20 border-blue-500 opacity-50;
+      }
+      .kanban-list.sortable-ghost {
+        @apply !bg-slate-700/50 rounded-2xl;
+        transform: rotate(2deg);
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+      }
+      /* Litepicker dark theme */
+      .dark .litepicker {
+        background-color: #1E293B !important;
+        border-color: #334155 !important;
+        color: #F8FAFC !important;
+      }
+      .dark .litepicker .container__months .month-item-header, .dark .litepicker .container__tooltip {
+        color: #F8FAFC !important;
+      }
+       .dark .litepicker .container__months .month-item .day-item:not(.is-start-date):not(.is-end-date):hover {
+         background-color: #334155 !important;
+      }
+       .dark .litepicker .month-item-week-day {
+         color: #94A3B8 !important;
+      }
+    }
+  </style>
+  <script>
+    // Tailwind Configuration
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            base: 'var(--color-base)',
+            panel: 'var(--color-panel)',
+            text: 'var(--color-text)',
+            secondary: 'var(--color-secondary)',
+            border: 'var(--color-border)',
+            brand: {
+              blue: 'var(--color-blue)',
+            },
+            hover: 'var(--color-hover)',
+          },
+        },
+      },
+    }
+  </script>
+</head>
+
+<body class="overflow-hidden">
+
+  <div id="app" class="flex h-screen w-screen bg-base">
+    <!-- Sidebar -->
+    <aside class="w-64 flex-shrink-0 bg-panel border-r border-border flex flex-col">
+      <div class="h-16 flex items-center px-6 border-b border-border">
+        <i data-lucide="kanban-square" class="text-brand-blue"></i>
+        <h1 class="ml-2 text-xl font-bold text-text">CRM Central</h1>
+      </div>
+      <nav id="sidebar-nav" class="flex-1 p-4 space-y-1">
+        <!-- Navigation items will be injected here by JS -->
+      </nav>
+      <div class="p-4 border-t border-border">
+        <div class="flex items-center">
+          <img class="h-10 w-10 rounded-full object-cover" src="https://i.pravatar.cc/150?u=AC" alt="User Avatar">
+          <div class="ml-3">
+            <p class="text-sm font-semibold text-text">Ana Costa</p>
+            <p class="text-xs text-secondary">ac@crmcentral.com</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Header -->
+      <header class="h-16 bg-panel border-b border-border flex-shrink-0 flex items-center justify-between px-6">
+        <div class="flex items-center space-x-4">
+            <h2 id="view-title" class="text-xl font-semibold text-text">Kanban de Leads</h2>
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary"></i>
+                <input id="global-search" type="text" placeholder="Buscar leads, empresas... (Pressione /)" class="w-72 bg-base border border-border rounded-lg pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none transition-all">
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button id="theme-toggle" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Alternar tema">
+            <i data-lucide="sun" class="h-5 w-5 block dark:hidden"></i>
+            <i data-lucide="moon" class="h-5 w-5 hidden dark:block"></i>
+          </button>
+           <button id="add-new-lead-header" class="h-9 px-4 flex items-center justify-center rounded-lg bg-brand-blue text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+            <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+            Novo Lead
+          </button>
+        </div>
+      </header>
+
+      <!-- Views Container -->
+      <main id="views-container" class="flex-1 overflow-auto p-6">
+        
+        <!-- Kanban View -->
+        <div id="kanban-view" class="view hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-2xl font-bold text-text">Kanban de Leads</h3>
+              <p class="text-sm text-secondary">Gerencie seus leads por etapas do funil.</p>
+            </div>
+            <div class="flex items-center space-x-3 relative">
+                <button id="filter-btn" class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover relative">
+                    <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                    Filtros
+                    <span id="filter-indicator" class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand-blue hidden"></span>
+                </button>
+                <div id="filter-popup" class="absolute top-full right-0 mt-2 w-72 bg-panel border border-border rounded-2xl shadow-xl p-4 z-10 hidden">
+                    <!-- Filter content will be injected here -->
+                </div>
+            </div>
+          </div>
+          <div id="kanban-board" class="flex gap-6 overflow-x-auto pb-4 -mx-6 px-6 items-start">
+            <!-- Kanban lists will be injected here -->
+          </div>
+        </div>
+        
+        <!-- Calendar View -->
+        <div id="calendar-view" class="view hidden h-full flex flex-col">
+           <div class="flex items-center justify-between mb-4">
+             <div class="flex items-center gap-2">
+                <button id="calendar-prev" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
+                <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
+                <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
+             </div>
+             <div>
+                <button class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
+             </div>
+           </div>
+           <div id="calendar-grid-header" class="grid grid-cols-7"></div>
+           <div id="calendar-grid" class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-border border-t border-l border-border rounded-lg overflow-hidden">
+              <!-- Calendar days injected here -->
+           </div>
+        </div>
+        
+        <!-- Other Views (Mocks) -->
+        <div id="contacts-view" class="view hidden"></div>
+        <div id="companies-view" class="view hidden"><div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Empresas (Mock)</h1></div></div>
+        <div id="reports-view" class="view hidden"><div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Relatórios (Mock)</h1></div></div>
+        <div id="settings-view" class="view hidden"><div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Configurações (Mock)</h1></div></div>
+
+      </main>
+    </div>
+    
+    <!-- Card Detail Drawer -->
+    <div id="card-drawer" class="fixed top-0 right-0 h-full w-[600px] bg-panel border-l border-border shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
+      <!-- Drawer content will be injected here -->
+    </div>
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 z-40 hidden transition-opacity duration-300"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] space-y-3"></div>
+    
+    <!-- Modal Container -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300">
+        <div id="modal-box" class="bg-panel rounded-2xl shadow-xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300">
+             <!-- Modal content here -->
+        </div>
+    </div>
+
+  </div>
+
+  <script>
+    // FIX: Wrap entire script in a window.onload to ensure all libs are loaded
+    window.onload = () => {
+
+      // --- SETUP ---
+      dayjs.extend(dayjs_plugin_relativeTime);
+      dayjs.extend(dayjs_plugin_isoWeek);
+      dayjs.locale('pt-br');
+
+      // FIX: Make App object global by attaching it to window
+      window.App = {
+        // --- STATE & CONFIG ---
+        state: {},
+        elements: {
+          app: document.getElementById('app'),
+          sidebarNav: document.getElementById('sidebar-nav'),
+          viewTitle: document.getElementById('view-title'),
+          viewsContainer: document.getElementById('views-container'),
+          themeToggle: document.getElementById('theme-toggle'),
+          kanbanBoard: document.getElementById('kanban-board'),
+          cardDrawer: document.getElementById('card-drawer'),
+          drawerOverlay: document.getElementById('drawer-overlay'),
+          toastContainer: document.getElementById('toast-container'),
+          modalOverlay: document.getElementById('modal-overlay'),
+          modalBox: document.getElementById('modal-box'),
+          globalSearch: document.getElementById('global-search'),
+          addNewLeadHeaderBtn: document.getElementById('add-new-lead-header'),
+          filterBtn: document.getElementById('filter-btn'),
+          filterPopup: document.getElementById('filter-popup'),
+          filterIndicator: document.getElementById('filter-indicator'),
+          calendar: {
+              grid: document.getElementById('calendar-grid'),
+              gridHeader: document.getElementById('calendar-grid-header'),
+              title: document.getElementById('calendar-title'),
+              prevBtn: document.getElementById('calendar-prev'),
+              nextBtn: document.getElementById('calendar-next'),
+          },
+        },
+        config: {
+          routes: [
+            { hash: '#/kanban', view: 'kanban-view', title: 'Kanban', icon: 'kanban-square' },
+            { hash: '#/calendar', view: 'calendar-view', title: 'Calendário', icon: 'calendar' },
+            { hash: '#/contacts', view: 'contacts-view', title: 'Contatos', icon: 'users' },
+            { hash: '#/companies', view: 'companies-view', title: 'Empresas', icon: 'building-2' },
+            { hash: '#/reports', view: 'reports-view', title: 'Relatórios', icon: 'bar-chart-2' },
+            { hash: '#/settings', view: 'settings-view', title: 'Configurações', icon: 'settings' },
+          ],
+          currentDate: dayjs(),
+          activeLitepicker: null,
+        },
+
+        // --- INITIALIZATION ---
+        init() {
+          this.initTheme();
+          this.loadState();
+          this.initRouter();
+          this.renderSidebar();
+          this.attachEventListeners();
+          lucide.createIcons();
+        },
+        
+        // --- STATE MANAGEMENT ---
+        uid() {
+          return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        },
+        
+        loadState() {
+          const storedState = localStorage.getItem('crmCentral');
+          if (storedState) {
+            this.state = JSON.parse(storedState);
+          } else {
+            this.seedState();
+          }
+           // Ensure filter/sort state exists
+          this.state.viewState = this.state.viewState || {
+            filters: { origin: [], labels: [] },
+            sortBy: 'default'
+          };
+        },
+        
+        saveState() {
+          localStorage.setItem('crmCentral', JSON.stringify(this.state));
+        },
+        
+        updateCard(cardId, updates) {
+            const board = this.state.boards[0];
+            const cardIndex = board.cards.findIndex(c => c.id === cardId);
+            if (cardIndex !== -1) {
+                board.cards[cardIndex] = { ...board.cards[cardIndex], ...updates };
+                const contactIndex = this.state.contacts.findIndex(c => c.id === cardId);
+                if(contactIndex !== -1) {
+                    this.state.contacts[contactIndex] = { ...this.state.contacts[contactIndex], ...updates };
+                }
+                this.saveState();
+                return board.cards[cardIndex];
+            }
+            return null;
+        },
+
+        seedState() {
+          console.log('Seeding initial state...');
+          const today = dayjs();
+          const cards = [
+                {id:"lead_1", listId:"novo", name:"João Silva", company:"Tech Solutions Ltda", email:"joao@tech.com", phone:"(11) 98765-4321", origin:"Meta Ads", value:50000, priority:"alta", labels:["Quente","Urgente"], members:["AC"], createdAt:today.startOf('month').add(2, 'day').toISOString(), dueDate: today.endOf('month').toISOString()},
+                {id:"lead_2", listId:"novo", name:"Maria Oliveira", company:"Startup XYZ", email:"maria@startupxyz.com", phone:"(21) 99876-5432", origin:"Google Ads", value:35000, priority:"media", labels:["Novo"], members:["BL"], createdAt:today.startOf('month').add(4, 'day').toISOString(), dueDate: null},
+                {id:"lead_3", listId:"em-contato", name:"Pedro Santos", company:"Indústria ABC", email:"pedro@industriaabc.com", phone:"(31) 91234-5678", origin:"Indicação", value:120000, priority:"alta", labels:["Corporativo", "Grande Porte"], members:["CS"], createdAt:today.startOf('month').add(5, 'day').toISOString(), dueDate: null},
+                {id:"lead_4", listId:"em-contato", name:"Ana Paula", company:"Consultoria Beta", email:"ana@consultoria.com", phone:"(41) 98234-9876", origin:"Orgânico", value:25000, priority:"baixa", labels:["Pequeno"], members:["AC"], createdAt:today.startOf('month').add(7, 'day').toISOString(), dueDate: null},
+                {id:"lead_5", listId:"negociacao", name:"Carlos Mendes", company:"E-commerce Plus", email:"carlos@ecommerceplus.com", phone:"(81) 98123-4567", origin:"Meta Ads", value:80000, priority:"media", labels:["E-commerce", "Médio Porte"], members:["BL"], createdAt:today.startOf('month').add(10, 'day').toISOString(), dueDate: null},
+                {id:"lead_6", listId:"visita", name:"Fernando Lima", company:"Escola Moderna", email:"fernando@escolamoderna.edu", phone:"(47) 99321-6543", origin:"Indicação", value:45000, priority:"alta", labels:["Educação"], members:["CS"], createdAt:today.startOf('month').add(12, 'day').toISOString(), dueDate: null},
+                {id:"lead_7", listId:"proposta", name:"Roberto Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"(27) 98765-1234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null},
+                {id:"lead_8", listId:"proposta", name:"Juliana Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"(41) 91824-8614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null},
+                {id:"lead_9", listId:"ganhou", name:"Sandra Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"(51) 99823-4512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null},
+            ].map(c => ({...c, checklist: [{id:this.uid(),text:"Retornar contato",done:Math.random()>0.5}], timeline:[{t:"created",at:c.createdAt}]}));
+
+          this.state = {
+            preferences: { theme: 'dark', savedViews: [] },
+            boards: [{
+              id: "leads-br",
+              name: "Leads BR",
+              availableLabels: ["Quente", "Urgente", "Novo", "Corporativo", "Grande Porte", "Pequeno", "E-commerce", "Médio Porte", "Educação", "Logística", "Marketing", "Imobiliário"],
+              lists: [
+                {id:"novo",name:"Novo",order:0},
+                {id:"em-contato",name:"Em Contato",order:1},
+                {id:"negociacao",name:"Em Negociação",order:2},
+                {id:"visita",name:"Visita Agendada",order:3},
+                {id:"proposta",name:"Proposta Enviada",order:4},
+                {id:"ganhou",name:"Fechado",order:5},
+                {id:"perdido",name:"Perdido",order:6}
+              ],
+              cards: cards,
+            }],
+            contacts: cards.map(c => ({...c})),
+            automations: [
+              {when:"move_to", to:"proposta", do:"create_task", payload:{text:"Enviar proposta em 2 dias"}, active: true},
+              {when:"move_to", to:"ganhou", do:"toast", payload:{text:"Lead fechado com sucesso!"}, active: true},
+              {when:"create_with_origin", origin:"Meta Ads", do:"assign", payload:{member:"AC"}, active: true}
+            ],
+            viewState: {
+                filters: { origin: [], labels: [] },
+                sortBy: 'default'
+            }
+          };
+          this.saveState();
+        },
+        
+        // --- THEME ---
+        initTheme() {
+          const savedTheme = localStorage.getItem('theme') || 'dark';
+          if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+        },
+        toggleTheme() {
+          document.documentElement.classList.toggle('dark');
+          localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        },
+
+        // --- ROUTER ---
+        initRouter() {
+          window.addEventListener('hashchange', this.handleRouteChange.bind(this));
+          this.handleRouteChange();
+        },
+        handleRouteChange() {
+          const hash = window.location.hash || '#/kanban';
+          this.closeDrawer(); 
+          this.elements.filterPopup.classList.add('hidden');
+          document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+          let currentRoute = this.config.routes.find(r => hash.startsWith(r.hash));
+          let contactId = null;
+
+          if (currentRoute && currentRoute.hash === '#/contacts' && hash.includes('/')) {
+            contactId = hash.split('/')[2];
+          }
+          
+          if (currentRoute) {
+            const viewElement = document.getElementById(currentRoute.view);
+            if (viewElement) {
+              viewElement.classList.remove('hidden');
+              this.elements.viewTitle.textContent = contactId ? 'Detalhe do Contato' : currentRoute.title;
+
+              if(currentRoute.view === 'kanban-view') {
+                this.renderKanbanBoard();
+                this.renderFilterPopup();
+              }
+              if(currentRoute.view === 'calendar-view') this.renderCalendar();
+              if(currentRoute.view === 'contacts-view') this.renderContactDetail(contactId);
+
+              document.querySelectorAll('#sidebar-nav a').forEach(a => {
+                a.classList.toggle('bg-hover', a.getAttribute('href').startsWith(currentRoute.hash));
+                a.classList.toggle('text-text', a.getAttribute('href').startsWith(currentRoute.hash));
+              });
+            }
+          } else {
+             window.location.hash = '#/kanban';
+          }
+        },
+        
+        // --- AUTOMATION ---
+        runAutomations(type, data) {
+          const activeAutomations = this.state.automations.filter(a => a.active);
+          
+          activeAutomations.forEach(auto => {
+            if (type === 'move_to' && auto.when === 'move_to' && auto.to === data.toList.id) {
+              this.executeAutomationAction(auto, data.card);
+            }
+            if (type === 'create' && auto.when === 'create_with_origin' && auto.origin === data.card.origin) {
+              this.executeAutomationAction(auto, data.card);
+            }
+          });
+        },
+        
+        executeAutomationAction(automation, card) {
+          console.log(`Executing automation: ${automation.do}`, card.name);
+          const board = this.state.boards[0];
+          const cardIndex = board.cards.findIndex(c => c.id === card.id);
+
+          switch (automation.do) {
+            case 'create_task':
+              if (cardIndex > -1) {
+                const newChecklistItem = { id: this.uid(), text: automation.payload.text, done: false };
+                board.cards[cardIndex].checklist.push(newChecklistItem);
+                this.showToast(`Tarefa criada para ${card.name}`, 'info');
+              }
+              break;
+            case 'toast':
+              this.showToast(automation.payload.text.replace('{name}', card.name), 'success');
+              break;
+            case 'assign':
+               if (cardIndex > -1) {
+                if(!board.cards[cardIndex].members.includes(automation.payload.member)){
+                    board.cards[cardIndex].members.push(automation.payload.member);
+                    this.showToast(`${card.name} atribuído para ${automation.payload.member}`, 'info');
+                }
+              }
+              break;
+          }
+          this.saveState();
+        },
+
+        // --- RENDER FUNCTIONS ---
+        renderSidebar() {
+          this.elements.sidebarNav.innerHTML = this.config.routes.map(route => `
+            <a href="${route.hash}" class="flex items-center justify-between px-3 py-2 rounded-lg text-secondary hover:bg-hover hover:text-text font-medium transition-colors">
+              <div class="flex items-center">
+                <i data-lucide="${route.icon}" class="h-5 w-5 mr-3"></i>
+                <span>${route.title}</span>
+              </div>
+            </a>
+          `).join('');
+          lucide.createIcons();
+        },
+        
+        renderKanbanBoard() {
+            const board = this.state.boards[0];
+            const lists = [...board.lists].sort((a,b) => a.order - b.order);
+            const searchTerm = this.elements.globalSearch.value.toLowerCase();
+            const { filters, sortBy } = this.state.viewState;
+
+            // Apply search
+            let processedCards = searchTerm 
+                ? board.cards.filter(card => Object.values(card).some(val => String(val).toLowerCase().includes(searchTerm)))
+                : [...board.cards];
+            
+            // Apply filters
+            if (filters.origin.length > 0) {
+                processedCards = processedCards.filter(c => filters.origin.includes(c.origin));
+            }
+            if (filters.labels.length > 0) {
+                processedCards = processedCards.filter(c => c.labels.some(l => filters.labels.includes(l)));
+            }
+
+            this.updateFilterIndicator();
+            
+            let boardHtml = lists.map(list => {
+                let listCards = processedCards.filter(c => c.listId === list.id);
+
+                // Apply sorting
+                switch(sortBy) {
+                    case 'value': listCards.sort((a, b) => b.value - a.value); break;
+                    case 'createdAt': listCards.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
+                    case 'name': listCards.sort((a, b) => a.name.localeCompare(b.name)); break;
+                }
+
+                return `
+                  <div class="kanban-list w-[320px] flex-shrink-0 bg-base rounded-2xl flex flex-col" data-list-id="${list.id}">
+                    <div class="p-4 flex items-center justify-between cursor-grab handle">
+                      <div class="flex items-center gap-2">
+                        <h4 class="font-semibold text-text">${list.name}</h4>
+                        <span class="text-sm font-medium text-secondary bg-panel px-2 py-0.5 rounded-md">${listCards.length}</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <button class="add-lead-in-list h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-list-id="${list.id}"><i data-lucide="plus" class="h-4 w-4"></i></button>
+                        <button class="h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+                      </div>
+                    </div>
+                    <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto" style="max-height: calc(100vh - 240px);">
+                      ${listCards.map(card => this.getCardHtml(card)).join('')}
+                    </div>
+                    <div class="p-2">
+                        <button class="add-lead-in-list w-full text-left p-2 rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors flex items-center text-sm" data-list-id="${list.id}"><i data-lucide="plus" class="h-4 w-4 mr-2"></i>Adicionar lead</button>
+                    </div>
+                  </div>
+                `
+            }).join('');
+
+            boardHtml += `
+                <div class="w-[320px] flex-shrink-0">
+                    <button id="add-new-list-btn" class="w-full bg-base/50 text-secondary hover:bg-base hover:text-text transition-colors rounded-2xl p-4 flex items-center justify-center font-semibold">
+                       <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Adicionar outra etapa
+                    </button>
+                </div>
+            `;
+
+            this.elements.kanbanBoard.innerHTML = boardHtml;
+            document.getElementById('add-new-list-btn').addEventListener('click', () => this.showNewListModal());
+
+            lucide.createIcons();
+            this.initKanbanSortable();
+        },
+
+        getCardHtml(card) {
+          const checklistProgress = card.checklist.length > 0 ? (card.checklist.filter(c => c.done).length / card.checklist.length) * 100 : 0;
+          const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400' };
+          
+          return `
+            <div class="kanban-card p-4 bg-panel rounded-xl border border-border shadow-sm cursor-pointer hover:shadow-md hover:border-brand-blue/50 transition-all" data-card-id="${card.id}" draggable="true">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                    <h5 class="font-semibold text-text mb-1">${card.name}</h5>
+                    <p class="text-sm text-secondary">${card.company}</p>
+                </div>
+                <button class="card-action-menu h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+              </div>
+
+              <div class="flex items-center gap-2 flex-wrap mb-3">
+                <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${originColors[card.origin] || 'bg-gray-500/20 text-gray-400'}">${card.origin}</span>
+                ${card.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
+              </div>
+
+              <p class="text-lg font-bold text-green-400 mb-3">R$ ${card.value.toLocaleString('pt-BR')}</p>
+              
+              <div class="text-sm text-secondary space-y-1.5 mb-4">
+                  <div class="flex items-center"><i data-lucide="mail" class="h-4 w-4 mr-2"></i><span>${card.email || '-'}</span></div>
+                  <div class="flex items-center"><i data-lucide="phone" class="h-4 w-4 mr-2"></i><span>${card.phone || '-'}</span></div>
+              </div>
+
+              <div class="flex items-center justify-between text-sm text-secondary">
+                  <div class="flex items-center gap-4">
+                    ${card.dueDate ? `<div class="flex items-center"><i data-lucide="calendar" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.dueDate).format('DD MMM')}</span></div>` : ''}
+                    ${card.checklist.length > 0 ? `<div class="flex items-center ${checklistProgress === 100 ? 'text-green-400' : ''}"><i data-lucide="check-square" class="h-4 w-4 mr-1.5"></i><span>${card.checklist.filter(c=>c.done).length}/${card.checklist.length}</span></div>` : ''}
+                  </div>
+                  <div class="flex -space-x-2">
+                    ${card.members.map(m => `<div class="h-7 w-7 rounded-full bg-slate-500 text-white text-xs flex items-center justify-center border-2 border-panel" title="${m}"><img class="rounded-full" src="https://i.pravatar.cc/28?u=${m}"/></div>`).join('')}
+                  </div>
+              </div>
+            </div>
+          `;
+        },
+
+        renderCalendar() {
+            this.elements.calendar.title.textContent = this.config.currentDate.format('MMMM YYYY');
+            this.elements.calendar.grid.innerHTML = ''; 
+            this.elements.calendar.gridHeader.innerHTML = ''; 
+
+            const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            this.elements.calendar.gridHeader.innerHTML = dayNames.map(d => `<div class="text-center p-2 text-xs font-bold text-secondary border-b border-border">${d}</div>`).join('');
+
+            const firstDayOfMonth = this.config.currentDate.startOf('month');
+            const startDay = firstDayOfMonth.startOf('week');
+            const board = this.state.boards[0];
+            let currentDay = startDay;
+
+            for (let i = 0; i < 35; i++) {
+                const isCurrentMonth = currentDay.isSame(this.config.currentDate, 'month');
+                const isToday = currentDay.isSame(dayjs(), 'day');
+                const cardsOnDay = board.cards.filter(c => dayjs(c.createdAt).isSame(currentDay, 'day'));
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = `p-2 overflow-hidden border-r border-b border-border relative ${isCurrentMonth ? 'bg-panel' : 'bg-base'} group transition-colors hover:bg-hover`;
+                dayCell.dataset.date = currentDay.format('YYYY-MM-DD');
+
+                dayCell.innerHTML = `
+                    <span class="text-sm font-semibold ${isToday ? 'bg-brand-blue text-white rounded-full h-7 w-7 flex items-center justify-center' : (isCurrentMonth ? 'text-text' : 'text-secondary/50')}">${currentDay.format('D')}</span>
+                    <div class="cards-container mt-2 space-y-1.5 overflow-y-auto" style="max-height: 80px;">
+                        ${cardsOnDay.map(card => `
+                            <div class="kanban-card p-1.5 text-xs rounded-md bg-slate-700 text-white truncate cursor-pointer hover:bg-slate-600" data-card-id="${card.id}">
+                                ${card.name}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                this.elements.calendar.grid.appendChild(dayCell);
+                currentDay = currentDay.add(1, 'day');
+            }
+            this.initCalendarSortable();
+        },
+        
+        renderContactDetail(contactId) {
+            const viewEl = document.getElementById('contacts-view');
+            if (!contactId) {
+                viewEl.innerHTML = `<div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Selecione um contato</h1></div>`;
+                return;
+            }
+            const contact = this.state.contacts.find(c => c.id === contactId);
+            if(!contact) {
+                viewEl.innerHTML = `<div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Contato não encontrado</h1></div>`;
+                return;
+            }
+
+            const board = this.state.boards[0];
+            const currentStageIndex = board.lists.findIndex(l => l.id === contact.listId);
+            const timeInPipe = dayjs().diff(dayjs(contact.createdAt), 'day');
+
+            viewEl.innerHTML = `
+            <div class="space-y-6">
+                <div class="bg-panel p-8 rounded-2xl">
+                    <div class="flex items-start justify-between mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-1">${contact.name}</h1>
+                            <p class="text-secondary">${contact.company}</p>
+                             <div class="mt-3 flex items-center gap-2 flex-wrap">
+                                ${contact.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
+                              </div>
+                        </div>
+                        <button class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover" onclick="App.openDrawer('${contact.id}')"><i data-lucide="edit" class="h-4 w-4 mr-2"></i>Editar Item</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-base p-4 rounded-xl">
+                            <h4 class="text-sm font-semibold text-secondary mb-2">Valor do Negócio</h4>
+                            <p class="text-3xl font-bold text-green-400">R$ ${contact.value.toLocaleString('pt-BR')}</p>
+                        </div>
+                        <div class="bg-base p-4 rounded-xl">
+                            <h4 class="text-sm font-semibold text-secondary mb-2">Estágio Atual</h4>
+                            <p class="text-2xl font-semibold text-text">${board.lists.find(l=>l.id===contact.listId)?.name || 'N/A'}</p>
+                        </div>
+                         <div class="bg-base p-4 rounded-xl">
+                            <h4 class="text-sm font-semibold text-secondary mb-2">No Funil há</h4>
+                            <p class="text-2xl font-semibold text-text">${timeInPipe} dias</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-panel p-8 rounded-2xl">
+                    <h3 class="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">Progresso nas Etapas</h3>
+                    <div class="flex items-center">
+                    ${board.lists.filter(l => !['ganhou', 'perdido'].includes(l.id)).map((list, index) => `
+                        ${index > 0 ? `<div class="flex-1 h-px ${index <= currentStageIndex ? 'bg-brand-blue' : 'bg-border'}"></div>` : ''}
+                        <div class="flex items-center flex-col text-center w-24">
+                            <div class="h-8 w-8 rounded-full flex items-center justify-center ${index <= currentStageIndex ? 'bg-brand-blue text-white' : 'bg-border text-secondary'}">
+                                ${index < currentStageIndex ? `<i data-lucide="check" class="h-5 w-5"></i>` : (index === currentStageIndex ? `<i data-lucide="circle-dot" class="h-5 w-5"></i>` : `<span class="font-bold">${index + 1}</span>`)}
+                            </div>
+                            <p class="text-xs mt-2 font-medium ${index <= currentStageIndex ? 'text-text' : 'text-secondary'}">${list.name}</p>
+                        </div>
+                    `).join('')}
+                    </div>
+                </div>
+
+                <div class="bg-panel p-8 rounded-2xl">
+                    <h3 class="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">Histórico</h3>
+                    <div class="space-y-6">
+                    ${[...contact.timeline].reverse().map(entry => `
+                        <div class="flex gap-4">
+                            <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : 'pencil')}" class="h-5 w-5 text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-text">${this.getTimelineEntryText(entry, board.lists)}</p>
+                                <p class="text-sm text-secondary">${dayjs(entry.at).format('DD MMM YYYY [às] HH:mm')}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                    </div>
+                </div>
+            </div>
+            `;
+            lucide.createIcons();
+        },
+
+        getTimelineEntryText(entry, lists) {
+            switch(entry.t) {
+                case 'created': return 'Lead criado';
+                case 'moved': return `Movido de "${lists.find(l=>l.id===entry.from)?.name}" para "${lists.find(l=>l.id===entry.to)?.name}"`;
+                case 'edited': return `Campo "${entry.field}" atualizado`;
+                default: return 'Atividade registrada';
+            }
+        },
+        
+        renderCardDrawer(card) {
+            const board = this.state.boards[0];
+            const availableLabels = board.availableLabels.filter(l => !card.labels.includes(l));
+
+            this.elements.cardDrawer.innerHTML = `
+                <div class="p-6 border-b border-border flex items-center justify-between">
+                     <h3 class="text-2xl font-bold text-text">${card.name}</h3>
+                     <button id="close-drawer" class="h-8 w-8 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text"><i data-lucide="x" class="h-5 w-5"></i></button>
+                </div>
+                <div class="flex-1 p-6 overflow-y-auto space-y-6">
+                    ${this.getDrawerFieldHtml('Nome do Lead', card, 'name', 'text')}
+                    ${this.getDrawerFieldHtml('Empresa', card, 'company', 'text')}
+                    ${this.getDrawerFieldHtml('Valor (R$)', card, 'value', 'number')}
+                    ${this.getDrawerFieldHtml('E-mail', card, 'email', 'email')}
+                    ${this.getDrawerFieldHtml('Telefone', card, 'phone', 'tel')}
+
+                     <div>
+                        <label class="text-sm font-medium text-secondary">Etiquetas</label>
+                        <div id="drawer-labels" class="flex flex-wrap gap-2 mt-2">
+                           ${card.labels.map(label => `
+                                <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
+                                    ${label}
+                                    <button class="remove-label-btn" data-label="${label}"><i data-lucide="x" class="h-3 w-3"></i></button>
+                                </span>
+                            `).join('')}
+                            <div class="relative">
+                                <button id="add-label-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
+                                <div id="label-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
+                                    ${availableLabels.map(l => `<button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover add-label-option" data-label="${l}">${l}</button>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+                 <div class="p-6 border-t border-border bg-base flex gap-2">
+                    <button id="delete-lead-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">Excluir Lead</button>
+                 </div>
+            `;
+            lucide.createIcons();
+        },
+        
+        getDrawerFieldHtml(label, card, key, type) {
+            return `
+                <div class="editable-field" data-key="${key}" data-type="${type}">
+                    <label class="text-sm font-medium text-secondary">${label}</label>
+                    <p class="text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md">${card[key] || 'Não definido'}</p>
+                </div>
+            `;
+        },
+
+        // --- UI INTERACTION & SORTABLE ---
+        openDrawer(cardId) {
+            const card = this.state.boards[0].cards.find(c => c.id === cardId);
+            if(!card) return;
+
+            this.renderCardDrawer(card);
+
+            this.elements.cardDrawer.dataset.cardId = cardId;
+            this.elements.cardDrawer.classList.remove('translate-x-full');
+            this.elements.drawerOverlay.classList.remove('hidden');
+            this.elements.drawerOverlay.style.opacity = 1;
+        },
+        closeDrawer() {
+            this.elements.cardDrawer.classList.add('translate-x-full');
+            this.elements.drawerOverlay.style.opacity = 0;
+            setTimeout(() => this.elements.drawerOverlay.classList.add('hidden'), 300);
+            this.elements.cardDrawer.dataset.cardId = '';
+        },
+        
+        makeFieldEditable(fieldElement) {
+            const cardId = this.elements.cardDrawer.dataset.cardId;
+            const key = fieldElement.dataset.key;
+            const type = fieldElement.dataset.type;
+            
+            const card = this.state.boards[0].cards.find(c => c.id === cardId);
+            if (!card) return;
+
+            const currentValue = card[key];
+            const p = fieldElement.querySelector('p');
+            
+            const input = document.createElement('input');
+            input.type = type;
+            input.value = currentValue || '';
+            input.className = "w-full bg-base border border-border rounded-lg px-3 py-2 text-lg focus:ring-2 focus:ring-brand-blue focus:outline-none";
+
+            p.replaceWith(input);
+            input.focus();
+
+            const save = () => {
+                const newValue = type === 'number' ? parseFloat(input.value) || 0 : input.value;
+                this.updateCard(cardId, { [key]: newValue });
+                
+                const newP = document.createElement('p');
+                newP.className = "text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md";
+                newP.textContent = newValue || 'Não definido';
+                input.replaceWith(newP);
+                this.showToast('Informação salva!', 'success');
+                
+                card.timeline.push({ t: 'edited', field: key, at: new Date().toISOString() });
+                this.saveState();
+                
+                this.handleRouteChange();
+                this.renderCardDrawer(card);
+            };
+
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') input.blur();
+                if(e.key === 'Escape') {
+                    input.value = currentValue;
+                    input.blur();
+                }
+            });
+        },
+
+        initKanbanSortable() {
+            new Sortable(this.elements.kanbanBoard, {
+                animation: 150, ghostClass: 'sortable-ghost', handle: '.handle',
+                onEnd: (evt) => {
+                    const board = this.state.boards[0];
+                    const [movedList] = board.lists.splice(evt.oldIndex, 1);
+                    board.lists.splice(evt.newIndex, 0, movedList);
+                    board.lists.forEach((list, index) => list.order = index);
+                    this.saveState();
+                },
+            });
+
+            document.querySelectorAll('.list-cards').forEach(listEl => {
+                new Sortable(listEl, {
+                    group: 'cards', animation: 150, ghostClass: 'sortable-ghost',
+                    onEnd: (evt) => {
+                        const cardId = evt.item.dataset.cardId;
+                        const fromListId = evt.from.closest('.kanban-list').dataset.listId;
+                        const toListId = evt.to.closest('.kanban-list').dataset.listId;
+                        
+                        const board = this.state.boards[0];
+                        const card = board.cards.find(c => c.id === cardId);
+                        
+                        if (card && fromListId !== toListId) {
+                            card.listId = toListId;
+                            card.timeline.push({ t: "moved", from: fromListId, to: toListId, at: new Date().toISOString() });
+                            
+                            const toList = board.lists.find(l => l.id === toListId);
+                            this.runAutomations('move_to', { card, toList });
+        
+                            this.saveState();
+                            this.renderKanbanBoard();
+                        }
+                    },
+                });
+            });
+        },
+        
+        initCalendarSortable() {
+            document.querySelectorAll('#calendar-grid .cards-container').forEach(container => {
+                new Sortable(container, {
+                    group: 'calendar-cards',
+                    animation: 150,
+                    onEnd: (evt) => {
+                        const cardId = evt.item.dataset.cardId;
+                        const newDate = evt.to.closest('[data-date]').dataset.date;
+                        
+                        const board = this.state.boards[0];
+                        const cardIndex = board.cards.findIndex(c => c.id === cardId);
+
+                        if(cardIndex !== -1 && newDate) {
+                            const oldDate = board.cards[cardIndex].createdAt;
+                            board.cards[cardIndex].createdAt = dayjs(newDate).toISOString();
+                            board.cards[cardIndex].timeline.push({ t: "rescheduled", from: oldDate, to: newDate, at: new Date().toISOString() });
+                            this.saveState();
+                            this.renderCalendar(); 
+                            this.showToast(`Lead ${board.cards[cardIndex].name} movido para ${dayjs(newDate).format('DD/MM')}`, 'info');
+                        }
+                    }
+                });
+            });
+        },
+        
+        // --- FILTERS & SORTING ---
+        renderFilterPopup() {
+            const { filters, sortBy } = this.state.viewState;
+            const board = this.state.boards[0];
+            const allOrigins = [...new Set(board.cards.map(c => c.origin))];
+            const allLabels = board.availableLabels;
+
+            this.elements.filterPopup.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-sm font-semibold text-secondary mb-2">Ordenar por</h4>
+                        <select id="sort-select" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
+                            <option value="default" ${sortBy === 'default' ? 'selected' : ''}>Padrão</option>
+                            <option value="value" ${sortBy === 'value' ? 'selected' : ''}>Maior Valor</option>
+                            <option value="createdAt" ${sortBy === 'createdAt' ? 'selected' : ''}>Mais Recentes</option>
+                            <option value="name" ${sortBy === 'name' ? 'selected' : ''}>Ordem Alfabética</option>
+                        </select>
+                    </div>
+                    <div class="border-t border-border"></div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-secondary mb-2">Origem</h4>
+                        <div id="origin-filters" class="space-y-1">
+                            ${allOrigins.map(o => `
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" value="${o}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.origin.includes(o) ? 'checked' : ''}>
+                                    <span class="text-sm">${o}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                     <div class="border-t border-border"></div>
+                     <div>
+                        <h4 class="text-sm font-semibold text-secondary mb-2">Etiquetas</h4>
+                        <div id="label-filters" class="space-y-1 max-h-32 overflow-y-auto">
+                           ${allLabels.map(l => `
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" value="${l}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.labels.includes(l) ? 'checked' : ''}>
+                                    <span class="text-sm">${l}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="border-t border-border pt-4 flex justify-between items-center">
+                        <button id="clear-filters-btn" class="text-sm text-secondary hover:text-text">Limpar Filtros</button>
+                    </div>
+                </div>
+            `;
+        },
+
+        updateFilterIndicator() {
+             const { filters } = this.state.viewState;
+             const isActive = filters.origin.length > 0 || filters.labels.length > 0;
+             this.elements.filterIndicator.classList.toggle('hidden', !isActive);
+        },
+
+        // --- MODAL & TOASTS ---
+        showToast(message, type = 'success') {
+          const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600' };
+          const icons = { success: 'check-circle', error: 'alert-circle', info: 'info' };
+          const toast = document.createElement('div');
+          toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg text-white text-sm font-semibold shadow-lg transition-all duration-300 transform translate-y-10 opacity-0 ${colors[type]}`;
+          toast.innerHTML = `<i data-lucide="${icons[type]}" class="h-5 w-5"></i><span>${message}</span>`;
+          this.elements.toastContainer.appendChild(toast);
+          lucide.createIcons();
+          setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+          setTimeout(() => {
+              toast.classList.add('opacity-0');
+              toast.addEventListener('transitionend', () => toast.remove());
+          }, 3000);
+        },
+
+        showModal(config) {
+            const { title, content, onConfirm, confirmText = 'Confirmar', confirmClass = 'bg-red-600 hover:bg-red-700' } = config;
+            this.elements.modalBox.innerHTML = `
+                <h3 class="text-xl font-bold mb-2">${title}</h3>
+                <div class="text-secondary mb-6">${content}</div>
+                <div class="flex justify-end gap-3">
+                    <button id="modal-cancel" class="h-9 px-4 rounded-lg text-sm font-semibold bg-panel border border-border hover:bg-hover">Cancelar</button>
+                    <button id="modal-confirm" class="h-9 px-4 rounded-lg text-sm font-semibold text-white ${confirmClass}">${confirmText}</button>
+                </div>
+            `;
+            this.elements.modalOverlay.classList.remove('hidden');
+            this.elements.modalOverlay.style.opacity = 1;
+            this.elements.modalBox.style.transform = 'scale(1)';
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+            const closeModal = () => {
+                this.elements.modalOverlay.style.opacity = 0;
+                this.elements.modalBox.style.transform = 'scale(0.95)';
+                setTimeout(() => this.elements.modalOverlay.classList.add('hidden'), 300);
+            };
+            confirmBtn.onclick = () => {
+                if (onConfirm) onConfirm();
+                closeModal();
+            };
+            cancelBtn.onclick = closeModal;
+            this.elements.modalOverlay.onclick = (e) => {
+                if(e.target === this.elements.modalOverlay) closeModal();
+            }
+        },
+        
+        showNewLeadModal(listId = 'novo') {
+            const content = `
+                <form id="new-lead-form" class="space-y-4">
+                    <div><label class="text-sm font-medium text-secondary">Nome do Lead</label><input name="name" required class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
+                    <div><label class="text-sm font-medium text-secondary">Empresa</label><input name="company" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
+                    <div><label class="text-sm font-medium text-secondary">Valor (R$)</label><input name="value" type="number" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
+                </form>
+            `;
+            this.showModal({
+                title: 'Criar Novo Lead', content, confirmText: 'Criar Lead', confirmClass: 'bg-brand-blue hover:bg-blue-700',
+                onConfirm: () => {
+                    const form = document.getElementById('new-lead-form');
+                    const formData = new FormData(form);
+                    const newCard = { id: this.uid(), listId, name: formData.get('name') || 'Novo Lead', company: formData.get('company') || '', value: parseFloat(formData.get('value')) || 0, email: '', phone: '', origin: 'Manual', priority: 'media', labels: [], members: ['AC'], createdAt: new Date().toISOString(), dueDate: null, checklist: [], timeline: [{ t: "created", at: new Date().toISOString() }] };
+                    this.state.boards[0].cards.push(newCard);
+                    this.state.contacts.push({...newCard});
+                    this.saveState();
+                    this.renderKanbanBoard();
+                    this.showToast('Lead criado com sucesso!', 'success');
+                }
+            })
+        },
+
+        showNewListModal() {
+            const content = `<form id="new-list-form"><label class="text-sm font-medium text-secondary">Nome da Etapa</label><input name="name" required class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></form>`;
+            this.showModal({
+                title: 'Criar Nova Etapa', content, confirmText: 'Criar Etapa', confirmClass: 'bg-brand-blue hover:bg-blue-700',
+                onConfirm: () => {
+                    const form = document.getElementById('new-list-form');
+                    const name = new FormData(form).get('name');
+                    if (!name) return;
+                    const board = this.state.boards[0];
+                    const newList = { id: name.toLowerCase().replace(/\s/g, '-'), name: name, order: board.lists.length };
+                    board.lists.push(newList);
+                    this.saveState();
+                    this.renderKanbanBoard();
+                    this.showToast('Nova etapa criada!', 'success');
+                }
+            });
+        },
+
+
+        // --- EVENT LISTENERS ---
+        attachEventListeners() {
+          this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+          this.elements.drawerOverlay.addEventListener('click', () => this.closeDrawer());
+          this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.showNewLeadModal());
+          
+          this.elements.filterBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this.elements.filterPopup.classList.toggle('hidden');
+          });
+
+          this.elements.filterPopup.addEventListener('change', (e) => {
+              if (e.target.id === 'sort-select') {
+                  this.state.viewState.sortBy = e.target.value;
+              }
+              if (e.target.closest('#origin-filters')) {
+                  this.state.viewState.filters.origin = [...document.querySelectorAll('#origin-filters input:checked')].map(el => el.value);
+              }
+               if (e.target.closest('#label-filters')) {
+                  this.state.viewState.filters.labels = [...document.querySelectorAll('#label-filters input:checked')].map(el => el.value);
+              }
+              this.renderKanbanBoard();
+          });
+          
+          this.elements.filterPopup.addEventListener('click', (e) => {
+              if(e.target.id === 'clear-filters-btn') {
+                  this.state.viewState.filters = { origin: [], labels: [] };
+                  this.state.viewState.sortBy = 'default';
+                  this.renderFilterPopup();
+                  this.renderKanbanBoard();
+              }
+          });
+
+          document.addEventListener('click', (e) => {
+              if (!this.elements.filterPopup.contains(e.target) && !this.elements.filterBtn.contains(e.target)) {
+                  this.elements.filterPopup.classList.add('hidden');
+              }
+          });
+
+          this.elements.cardDrawer.addEventListener('click', (e) => {
+              if (e.target.closest('#close-drawer')) this.closeDrawer();
+              const field = e.target.closest('.editable-field p');
+              if (field) this.makeFieldEditable(field.parentElement);
+              const addLabelBtn = e.target.closest('#add-label-btn');
+              if(addLabelBtn) document.getElementById('label-dropdown').classList.toggle('hidden');
+              const addLabelOption = e.target.closest('.add-label-option');
+              if(addLabelOption) {
+                  const cardId = this.elements.cardDrawer.dataset.cardId;
+                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  card.labels.push(addLabelOption.dataset.label);
+                  this.updateCard(cardId, { labels: card.labels });
+                  this.renderCardDrawer(card);
+                  this.renderKanbanBoard();
+              }
+              const removeLabelBtn = e.target.closest('.remove-label-btn');
+              if(removeLabelBtn) {
+                  const cardId = this.elements.cardDrawer.dataset.cardId;
+                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  const newLabels = card.labels.filter(l => l !== removeLabelBtn.dataset.label);
+                  this.updateCard(cardId, { labels: newLabels });
+                  this.renderCardDrawer(card);
+                  this.renderKanbanBoard();
+              }
+              if (e.target.closest('#delete-lead-btn')) {
+                  const cardId = this.elements.cardDrawer.dataset.cardId;
+                  this.showModal({
+                      title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
+                      onConfirm: () => {
+                          this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
+                          this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
+                          this.saveState();
+                          this.closeDrawer();
+                          this.handleRouteChange();
+                          this.showToast('Lead excluído.', 'info');
+                      }
+                  });
+              }
+          });
+
+          this.elements.viewsContainer.addEventListener('click', (e) => {
+              const cardElement = e.target.closest('.kanban-card');
+              const addLeadBtn = e.target.closest('.add-lead-in-list');
+              const cardMenuBtn = e.target.closest('.card-action-menu');
+
+              if (cardMenuBtn) {
+                  e.stopPropagation();
+                  this.openDrawer(cardMenuBtn.closest('.kanban-card').dataset.cardId);
+              } else if (cardElement) {
+                  if(cardElement.closest('#calendar-grid')){
+                     this.openDrawer(cardElement.dataset.cardId);
+                  } else {
+                     window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
+                  }
+              } else if (addLeadBtn) {
+                  this.showNewLeadModal(addLeadBtn.dataset.listId);
+              }
+          });
+          
+          this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanBoard());
+          document.addEventListener('keydown', (e) => {
+              if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                  e.preventDefault();
+                  this.elements.globalSearch.focus();
+              }
+              if (e.key === 'Escape') {
+                  this.closeDrawer();
+                  this.elements.filterPopup.classList.add('hidden');
+              }
+          });
+
+          this.elements.calendar.prevBtn.addEventListener('click', () => {
+              this.config.currentDate = this.config.currentDate.subtract(1, 'month');
+              this.renderCalendar();
+          });
+          this.elements.calendar.nextBtn.addEventListener('click', () => {
+              this.config.currentDate = this.config.currentDate.add(1, 'month');
+              this.renderCalendar();
+          });
+        }
+      };
+
+      App.init();
+
+    };
+  </script>
+
+</body>
+</html>
+
