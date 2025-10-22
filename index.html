@@ -28,8 +28,8 @@
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isoWeek.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/pt-br.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isBetween.js"></script>
+  
   <!-- Custom Styles and Tailwind Config -->
   <style type="text/tailwindcss">
     @layer base {
@@ -91,6 +91,16 @@
        .dark .litepicker .month-item-week-day {
          color: #94A3B8 !important;
       }
+       .dark .litepicker, .dark .litepicker .container__footer {
+         background-color: #1E293B !important;
+      }
+       .dark .litepicker .button-cancel {
+        color: #F8FAFC !important;
+      }
+      /* List View Specific Styles */
+       .list-view-row:hover {
+           @apply bg-hover;
+       }
     }
   </style>
   <script>
@@ -168,14 +178,20 @@
       <!-- Views Container -->
       <main id="views-container" class="flex-1 overflow-auto p-6">
         
-        <!-- Kanban View -->
-        <div id="kanban-view" class="view hidden">
+        <!-- Kanban View (Now contains Board, List and Calendar) -->
+        <div id="kanban-view" class="view hidden h-full flex flex-col">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-2xl font-bold text-text">Kanban de Leads</h3>
               <p class="text-sm text-secondary">Gerencie seus leads por etapas do funil.</p>
             </div>
             <div class="flex items-center space-x-3 relative">
+                <button id="main-view-toggle" class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover">
+                    <i data-lucide="list" class="h-4 w-4 mr-2"></i>Visão: Lista
+                </button>
+                <button id="calendar-view-toggle" class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover">
+                    <i data-lucide="calendar" class="h-4 w-4 mr-2"></i>Calendário
+                </button>
                 <button id="filter-btn" class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover relative">
                     <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
                     Filtros
@@ -186,27 +202,53 @@
                 </div>
             </div>
           </div>
-          <div id="kanban-board" class="flex gap-6 overflow-x-auto pb-4 -mx-6 px-6 items-start">
-            <!-- Kanban lists will be injected here -->
+          
+          <!-- Kanban Board Wrapper -->
+          <div id="kanban-board-wrapper" class="flex-1 overflow-hidden -mx-6">
+            <div id="kanban-board" class="flex gap-6 overflow-x-auto pb-4 px-6 items-start h-full">
+              <!-- Kanban lists will be injected here -->
+            </div>
           </div>
-        </div>
-        
-        <!-- Calendar View -->
-        <div id="calendar-view" class="view hidden h-full flex flex-col">
-           <div class="flex items-center justify-between mb-4">
-             <div class="flex items-center gap-2">
-                <button id="calendar-prev" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
-                <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
-                <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
+
+          <!-- List View Wrapper (hidden by default) -->
+          <div id="list-view-wrapper" class="hidden flex-1 overflow-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-secondary uppercase bg-base sticky top-0">
+                <tr>
+                  <th scope="col" class="px-6 py-3">Nome</th>
+                  <th scope="col" class="px-6 py-3">Empresa</th>
+                  <th scope="col" class="px-6 py-3">Etapa</th>
+                  <th scope="col" class="px-6 py-3">Origem</th>
+                  <th scope="col" class="px-6 py-3">Responsáveis</th>
+                  <th scope="col" class="px-6 py-3">Criação</th>
+                  <th scope="col" class="px-6 py-3"><span class="sr-only">Ações</span></th>
+                </tr>
+              </thead>
+              <tbody id="list-view-body" class="bg-panel divide-y divide-border">
+                <!-- List items will be injected here -->
+              </tbody>
+            </table>
+          </div>
+
+
+          <!-- Calendar Wrapper (hidden by default) -->
+          <div id="calendar-wrapper" class="hidden h-full flex flex-col flex-1">
+             <div class="flex items-center justify-between mb-4">
+               <div class="flex items-center gap-2">
+                  <button id="calendar-prev" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
+                  <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
+                  <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
+               </div>
+               <div>
+                  <button id="calendar-today" class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
+               </div>
              </div>
-             <div>
-                <button class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
+             <div id="calendar-grid-header" class="grid grid-cols-7"></div>
+             <div id="calendar-grid" class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-border border-t border-l border-border rounded-lg overflow-hidden">
+                <!-- Calendar days injected here -->
              </div>
-           </div>
-           <div id="calendar-grid-header" class="grid grid-cols-7"></div>
-           <div id="calendar-grid" class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-border border-t border-l border-border rounded-lg overflow-hidden">
-              <!-- Calendar days injected here -->
-           </div>
+          </div>
+
         </div>
         
         <!-- Other Views (Mocks) -->
@@ -228,7 +270,7 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-[100] space-y-3"></div>
     
     <!-- Modal Container -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300">
+    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300 flex"> <!-- FIX: Added 'flex' -->
         <div id="modal-box" class="bg-panel rounded-2xl shadow-xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300">
              <!-- Modal content here -->
         </div>
@@ -243,6 +285,7 @@
       // --- SETUP ---
       dayjs.extend(dayjs_plugin_relativeTime);
       dayjs.extend(dayjs_plugin_isoWeek);
+      dayjs.extend(dayjs_plugin_isBetween);
       dayjs.locale('pt-br');
 
       // FIX: Make App object global by attaching it to window
@@ -255,7 +298,14 @@
           viewTitle: document.getElementById('view-title'),
           viewsContainer: document.getElementById('views-container'),
           themeToggle: document.getElementById('theme-toggle'),
+          kanbanView: document.getElementById('kanban-view'),
           kanbanBoard: document.getElementById('kanban-board'),
+          kanbanBoardWrapper: document.getElementById('kanban-board-wrapper'),
+          listViewWrapper: document.getElementById('list-view-wrapper'),
+          listViewBody: document.getElementById('list-view-body'),
+          calendarWrapper: document.getElementById('calendar-wrapper'),
+          mainViewToggle: document.getElementById('main-view-toggle'),
+          calendarViewToggle: document.getElementById('calendar-view-toggle'), // Renamed from kanban-view-toggle
           cardDrawer: document.getElementById('card-drawer'),
           drawerOverlay: document.getElementById('drawer-overlay'),
           toastContainer: document.getElementById('toast-container'),
@@ -272,12 +322,12 @@
               title: document.getElementById('calendar-title'),
               prevBtn: document.getElementById('calendar-prev'),
               nextBtn: document.getElementById('calendar-next'),
+              todayBtn: document.getElementById('calendar-today'),
           },
         },
         config: {
           routes: [
             { hash: '#/kanban', view: 'kanban-view', title: 'Kanban', icon: 'kanban-square' },
-            { hash: '#/calendar', view: 'calendar-view', title: 'Calendário', icon: 'calendar' },
             { hash: '#/contacts', view: 'contacts-view', title: 'Contatos', icon: 'users' },
             { hash: '#/companies', view: 'companies-view', title: 'Empresas', icon: 'building-2' },
             { hash: '#/reports', view: 'reports-view', title: 'Relatórios', icon: 'bar-chart-2' },
@@ -285,6 +335,7 @@
           ],
           currentDate: dayjs(),
           activeLitepicker: null,
+          previousMainView: 'board', // To remember the view when switching to calendar
         },
 
         // --- INITIALIZATION ---
@@ -309,11 +360,13 @@
           } else {
             this.seedState();
           }
-           // Ensure filter/sort state exists
+           // Ensure filter/sort/view state exists
           this.state.viewState = this.state.viewState || {
-            filters: { origin: [], labels: [] },
-            sortBy: 'default'
+            filters: { origin: [], labels: [], dateRange: { start: null, end: null } },
+            sortBy: 'default',
+            activeMainView: 'board' // 'board' or 'list' or 'calendar'
           };
+          this.config.previousMainView = ['board', 'list'].includes(this.state.viewState.activeMainView) ? this.state.viewState.activeMainView : 'board';
         },
         
         saveState() {
@@ -324,6 +377,15 @@
             const board = this.state.boards[0];
             const cardIndex = board.cards.findIndex(c => c.id === cardId);
             if (cardIndex !== -1) {
+                // Add an edit entry to timeline
+                if(!updates.timeline) {
+                    const oldCard = board.cards[cardIndex];
+                    const changedKeys = Object.keys(updates).filter(k => oldCard[k] !== updates[k] && k !== 'attributes' && k !== 'notes'); // Don't log attr/note changes as single "field"
+                    if(changedKeys.length > 0 && !changedKeys.includes('listId')) { // listId move is handled separately
+                         board.cards[cardIndex].timeline.push({ t: 'edited', field: changedKeys.join(', '), at: new Date().toISOString() });
+                    }
+                }
+                
                 board.cards[cardIndex] = { ...board.cards[cardIndex], ...updates };
                 const contactIndex = this.state.contacts.findIndex(c => c.id === cardId);
                 if(contactIndex !== -1) {
@@ -339,16 +401,24 @@
           console.log('Seeding initial state...');
           const today = dayjs();
           const cards = [
-                {id:"lead_1", listId:"novo", name:"João Silva", company:"Tech Solutions Ltda", email:"joao@tech.com", phone:"(11) 98765-4321", origin:"Meta Ads", value:50000, priority:"alta", labels:["Quente","Urgente"], members:["AC"], createdAt:today.startOf('month').add(2, 'day').toISOString(), dueDate: today.endOf('month').toISOString()},
-                {id:"lead_2", listId:"novo", name:"Maria Oliveira", company:"Startup XYZ", email:"maria@startupxyz.com", phone:"(21) 99876-5432", origin:"Google Ads", value:35000, priority:"media", labels:["Novo"], members:["BL"], createdAt:today.startOf('month').add(4, 'day').toISOString(), dueDate: null},
-                {id:"lead_3", listId:"em-contato", name:"Pedro Santos", company:"Indústria ABC", email:"pedro@industriaabc.com", phone:"(31) 91234-5678", origin:"Indicação", value:120000, priority:"alta", labels:["Corporativo", "Grande Porte"], members:["CS"], createdAt:today.startOf('month').add(5, 'day').toISOString(), dueDate: null},
-                {id:"lead_4", listId:"em-contato", name:"Ana Paula", company:"Consultoria Beta", email:"ana@consultoria.com", phone:"(41) 98234-9876", origin:"Orgânico", value:25000, priority:"baixa", labels:["Pequeno"], members:["AC"], createdAt:today.startOf('month').add(7, 'day').toISOString(), dueDate: null},
-                {id:"lead_5", listId:"negociacao", name:"Carlos Mendes", company:"E-commerce Plus", email:"carlos@ecommerceplus.com", phone:"(81) 98123-4567", origin:"Meta Ads", value:80000, priority:"media", labels:["E-commerce", "Médio Porte"], members:["BL"], createdAt:today.startOf('month').add(10, 'day').toISOString(), dueDate: null},
-                {id:"lead_6", listId:"visita", name:"Fernando Lima", company:"Escola Moderna", email:"fernando@escolamoderna.edu", phone:"(47) 99321-6543", origin:"Indicação", value:45000, priority:"alta", labels:["Educação"], members:["CS"], createdAt:today.startOf('month').add(12, 'day').toISOString(), dueDate: null},
-                {id:"lead_7", listId:"proposta", name:"Roberto Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"(27) 98765-1234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null},
-                {id:"lead_8", listId:"proposta", name:"Juliana Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"(41) 91824-8614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null},
-                {id:"lead_9", listId:"ganhou", name:"Sandra Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"(51) 99823-4512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null},
-            ].map(c => ({...c, checklist: [{id:this.uid(),text:"Retornar contato",done:Math.random()>0.5}], timeline:[{t:"created",at:c.createdAt}]}));
+                {id:"lead_1", listId:"novo", name:"João", sobrenome:"Silva", company:"Tech Solutions Ltda", email:"joao@tech.com", phone:"11987654321", origin:"Meta Ads", value:50000, priority:"alta", labels:["Quente","Urgente"], members:["AC"], createdAt:today.startOf('month').add(2, 'day').toISOString(), dueDate: today.endOf('month').toISOString()},
+                {id:"lead_2", listId:"novo", name:"Maria", sobrenome:"Oliveira", company:"Startup XYZ", email:"maria@startupxyz.com", phone:"21998765432", origin:"Google Ads", value:35000, priority:"media", labels:["Novo"], members:["BL"], createdAt:today.startOf('month').add(4, 'day').toISOString(), dueDate: null},
+                {id:"lead_3", listId:"em-contato", name:"Pedro", sobrenome:"Santos", company:"Indústria ABC", email:"pedro@industriaabc.com", phone:"31912345678", origin:"Indicação", value:120000, priority:"alta", labels:["Corporativo", "Grande Porte"], members:["CS"], createdAt:today.startOf('month').add(5, 'day').toISOString(), dueDate: null},
+                {id:"lead_4", listId:"em-contato", name:"Ana", sobrenome:"Paula", company:"Consultoria Beta", email:"ana@consultoria.com", phone:"41982349876", origin:"Orgânico", value:25000, priority:"baixa", labels:["Pequeno"], members:["AC"], createdAt:today.startOf('month').add(7, 'day').toISOString(), dueDate: null},
+                {id:"lead_5", listId:"negociacao", name:"Carlos", sobrenome:"Mendes", company:"E-commerce Plus", email:"carlos@ecommerceplus.com", phone:"81981234567", origin:"Meta Ads", value:80000, priority:"media", labels:["E-commerce", "Médio Porte"], members:["BL"], createdAt:today.startOf('month').add(10, 'day').toISOString(), dueDate: null},
+                {id:"lead_6", listId:"visita", name:"Fernando", sobrenome:"Lima", company:"", email:"fernando@escolamoderna.edu", phone:"47993216543", origin:"Indicação", value:45000, priority:"alta", labels:["Educação"], members:["CS"], createdAt:today.startOf('month').add(12, 'day').toISOString(), dueDate: null},
+                {id:"lead_7", listId:"proposta", name:"Roberto", sobrenome:"Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"27987651234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null},
+                {id:"lead_8", listId:"proposta", name:"Juliana", sobrenome:"Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"41918248614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null},
+                {id:"lead_9", listId:"ganhou", name:"Sandra", sobrenome:"Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"51998234512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null},
+            ].map(c => ({...c, 
+                checklist: [{id:this.uid(),text:"Retornar contato",done:Math.random()>0.5}], 
+                timeline:[{t:"created",at:c.createdAt}],
+                notes: "",
+                attributes: [{id: this.uid(), key: "Canal Preferido", value: "WhatsApp"}],
+                cidade: "",
+                pais: "Brazil",
+                biografia: ""
+            }));
 
           this.state = {
             preferences: { theme: 'dark', savedViews: [] },
@@ -356,6 +426,11 @@
               id: "leads-br",
               name: "Leads BR",
               availableLabels: ["Quente", "Urgente", "Novo", "Corporativo", "Grande Porte", "Pequeno", "E-commerce", "Médio Porte", "Educação", "Logística", "Marketing", "Imobiliário"],
+               availableMembers: [
+                    { id: 'AC', name: 'Ana Costa', avatar: 'https://i.pravatar.cc/150?u=AC' },
+                    { id: 'BL', name: 'Bruno Lima', avatar: 'https://i.pravatar.cc/150?u=BL' },
+                    { id: 'CS', name: 'Carla Souza', avatar: 'https://i.pravatar.cc/150?u=CS' }
+                ],
               lists: [
                 {id:"novo",name:"Novo",order:0},
                 {id:"em-contato",name:"Em Contato",order:1},
@@ -374,8 +449,9 @@
               {when:"create_with_origin", origin:"Meta Ads", do:"assign", payload:{member:"AC"}, active: true}
             ],
             viewState: {
-                filters: { origin: [], labels: [] },
-                sortBy: 'default'
+                filters: { origin: [], labels: [], dateRange: { start: null, end: null } },
+                sortBy: 'default',
+                activeMainView: 'board'
             }
           };
           this.saveState();
@@ -416,10 +492,9 @@
               this.elements.viewTitle.textContent = contactId ? 'Detalhe do Contato' : currentRoute.title;
 
               if(currentRoute.view === 'kanban-view') {
-                this.renderKanbanBoard();
+                this.renderKanbanView(); // Renders board, list, or calendar based on state
                 this.renderFilterPopup();
               }
-              if(currentRoute.view === 'calendar-view') this.renderCalendar();
               if(currentRoute.view === 'contacts-view') this.renderContactDetail(contactId);
 
               document.querySelectorAll('#sidebar-nav a').forEach(a => {
@@ -487,9 +562,38 @@
           lucide.createIcons();
         },
         
-        renderKanbanBoard() {
-            const board = this.state.boards[0];
-            const lists = [...board.lists].sort((a,b) => a.order - b.order);
+        renderKanbanView() {
+            const currentView = this.state.viewState.activeMainView;
+            
+            // Hide all wrappers first
+            this.elements.kanbanBoardWrapper.classList.add('hidden');
+            this.elements.listViewWrapper.classList.add('hidden');
+            this.elements.calendarWrapper.classList.add('hidden');
+
+            // Reset calendar toggle button
+            this.elements.calendarViewToggle.innerHTML = `<i data-lucide="calendar" class="h-4 w-4 mr-2"></i>Calendário`;
+
+            if (currentView === 'board') {
+                this.elements.kanbanBoardWrapper.classList.remove('hidden');
+                this.elements.mainViewToggle.innerHTML = `<i data-lucide="list" class="h-4 w-4 mr-2"></i>Visão: Lista`;
+                this.renderKanbanBoardContent(); 
+            } else if (currentView === 'list') {
+                 this.elements.listViewWrapper.classList.remove('hidden');
+                 this.elements.mainViewToggle.innerHTML = `<i data-lucide="kanban-square" class="h-4 w-4 mr-2"></i>Visão: Kanban`;
+                 this.renderListViewContent();
+            } else { // Calendar
+                this.elements.calendarWrapper.classList.remove('hidden');
+                // Update calendar button text to allow returning
+                this.elements.calendarViewToggle.innerHTML = `<i data-lucide="${this.config.previousMainView === 'board' ? 'kanban-square' : 'list'}" class="h-4 w-4 mr-2"></i>Voltar`;
+                // Keep the main view toggle as it was
+                this.elements.mainViewToggle.innerHTML = `<i data-lucide="${this.config.previousMainView === 'board' ? 'list' : 'kanban-square'}" class="h-4 w-4 mr-2"></i>Visão: ${this.config.previousMainView === 'board' ? 'Lista' : 'Kanban'}`;
+                this.renderCalendar();
+            }
+            lucide.createIcons();
+        },
+
+        getProcessedCards() {
+             const board = this.state.boards[0];
             const searchTerm = this.elements.globalSearch.value.toLowerCase();
             const { filters, sortBy } = this.state.viewState;
 
@@ -505,18 +609,35 @@
             if (filters.labels.length > 0) {
                 processedCards = processedCards.filter(c => c.labels.some(l => filters.labels.includes(l)));
             }
+            if (filters.dateRange && filters.dateRange.start && filters.dateRange.end) {
+                const start = dayjs(filters.dateRange.start).startOf('day');
+                const end = dayjs(filters.dateRange.end).endOf('day');
+                processedCards = processedCards.filter(c => {
+                    const lastMod = dayjs(c.timeline[c.timeline.length - 1].at);
+                    return lastMod.isBetween(start, end);
+                });
+            }
+            
+             // Apply sorting (for list view primarily, Kanban sorts within columns)
+            switch(sortBy) {
+                case 'value': processedCards.sort((a, b) => b.value - a.value); break;
+                case 'createdAt': processedCards.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); break; // Data de Criação
+                case 'name': processedCards.sort((a, b) => a.name.localeCompare(b.name)); break;
+            }
 
             this.updateFilterIndicator();
+            return processedCards;
+        },
+
+        renderKanbanBoardContent() {
+            const board = this.state.boards[0];
+            const lists = [...board.lists].sort((a,b) => a.order - b.order);
+            const processedCards = this.getProcessedCards(); // Get filtered/searched cards
             
             let boardHtml = lists.map(list => {
                 let listCards = processedCards.filter(c => c.listId === list.id);
-
-                // Apply sorting
-                switch(sortBy) {
-                    case 'value': listCards.sort((a, b) => b.value - a.value); break;
-                    case 'createdAt': listCards.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
-                    case 'name': listCards.sort((a, b) => a.name.localeCompare(b.name)); break;
-                }
+                // Kanban columns don't apply the global sort, only filter/search
+                // Sorting within columns is manual via drag-drop
 
                 return `
                   <div class="kanban-list w-[320px] flex-shrink-0 bg-base rounded-2xl flex flex-col" data-list-id="${list.id}">
@@ -530,7 +651,7 @@
                         <button class="h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
                       </div>
                     </div>
-                    <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto" style="max-height: calc(100vh - 240px);">
+                    <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto" style="max-height: calc(100vh - 300px);">
                       ${listCards.map(card => this.getCardHtml(card)).join('')}
                     </div>
                     <div class="p-2">
@@ -555,26 +676,63 @@
             this.initKanbanSortable();
         },
 
+        renderListViewContent() {
+            const processedCards = this.getProcessedCards(); // Get filtered AND sorted cards
+            const board = this.state.boards[0];
+
+            this.elements.listViewBody.innerHTML = processedCards.map(card => {
+                const list = board.lists.find(l => l.id === card.listId);
+                const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400', 'Manual': 'bg-gray-500/20 text-gray-400' };
+
+                return `
+                    <tr class="list-view-row border-b border-border cursor-pointer" data-card-id="${card.id}">
+                        <td class="px-6 py-4 font-medium text-text whitespace-nowrap">${card.name} ${card.sobrenome || ''}</td>
+                        <td class="px-6 py-4 text-secondary">${card.company || '-'}</td>
+                        <td class="px-6 py-4 text-secondary">${list ? list.name : 'N/A'}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${originColors[card.origin] || 'bg-gray-500/20 text-gray-400'}">${card.origin}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex -space-x-2">
+                                ${card.members.map(mId => {
+                                    const member = board.availableMembers.find(m => m.id === mId);
+                                    return member ? `<img class="h-7 w-7 rounded-full border-2 border-panel" src="${member.avatar}" title="${member.name}">` : ''
+                                }).join('')}
+                            </div>
+                        </td>
+                         <td class="px-6 py-4 text-secondary">${dayjs(card.createdAt).format('DD/MM/YYYY')}</td>
+                        <td class="px-6 py-4 text-right">
+                           <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+             lucide.createIcons();
+        },
+
+
         getCardHtml(card) {
           const checklistProgress = card.checklist.length > 0 ? (card.checklist.filter(c => c.done).length / card.checklist.length) * 100 : 0;
-          const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400' };
+          const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400', 'Manual': 'bg-gray-500/20 text-gray-400' };
+          const board = this.state.boards[0];
           
           return `
             <div class="kanban-card p-4 bg-panel rounded-xl border border-border shadow-sm cursor-pointer hover:shadow-md hover:border-brand-blue/50 transition-all" data-card-id="${card.id}" draggable="true">
               <div class="flex items-start justify-between mb-2">
                 <div>
-                    <h5 class="font-semibold text-text mb-1">${card.name}</h5>
-                    <p class="text-sm text-secondary">${card.company}</p>
+                    <h5 class="font-semibold text-text mb-1">${card.name} ${card.sobrenome || ''}</h5>
+                    <p class="text-sm text-secondary">${card.company || 'Sem empresa'}</p>
                 </div>
-                <button class="card-action-menu h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+                <div class="flex-shrink-0 flex items-center">
+                    <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
+                    <button class="card-action-menu h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+                </div>
               </div>
 
               <div class="flex items-center gap-2 flex-wrap mb-3">
                 <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${originColors[card.origin] || 'bg-gray-500/20 text-gray-400'}">${card.origin}</span>
                 ${card.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
               </div>
-
-              <p class="text-lg font-bold text-green-400 mb-3">R$ ${card.value.toLocaleString('pt-BR')}</p>
               
               <div class="text-sm text-secondary space-y-1.5 mb-4">
                   <div class="flex items-center"><i data-lucide="mail" class="h-4 w-4 mr-2"></i><span>${card.email || '-'}</span></div>
@@ -587,7 +745,10 @@
                     ${card.checklist.length > 0 ? `<div class="flex items-center ${checklistProgress === 100 ? 'text-green-400' : ''}"><i data-lucide="check-square" class="h-4 w-4 mr-1.5"></i><span>${card.checklist.filter(c=>c.done).length}/${card.checklist.length}</span></div>` : ''}
                   </div>
                   <div class="flex -space-x-2">
-                    ${card.members.map(m => `<div class="h-7 w-7 rounded-full bg-slate-500 text-white text-xs flex items-center justify-center border-2 border-panel" title="${m}"><img class="rounded-full" src="https://i.pravatar.cc/28?u=${m}"/></div>`).join('')}
+                    ${card.members.map(mId => {
+                        const member = board.availableMembers.find(m => m.id === mId);
+                        return member ? `<img class="h-7 w-7 rounded-full border-2 border-panel" src="${member.avatar}" title="${member.name}">` : ''
+                    }).join('')}
                   </div>
               </div>
             </div>
@@ -645,74 +806,182 @@
             }
 
             const board = this.state.boards[0];
-            const currentStageIndex = board.lists.findIndex(l => l.id === contact.listId);
-            const timeInPipe = dayjs().diff(dayjs(contact.createdAt), 'day');
+            const timeSinceCreation = dayjs(contact.createdAt).fromNow();
+            const lastActivity = dayjs(contact.timeline[contact.timeline.length - 1].at).fromNow();
 
             viewEl.innerHTML = `
-            <div class="space-y-6">
-                <div class="bg-panel p-8 rounded-2xl">
-                    <div class="flex items-start justify-between mb-8">
-                        <div>
-                            <h1 class="text-3xl font-bold mb-1">${contact.name}</h1>
-                            <p class="text-secondary">${contact.company}</p>
-                             <div class="mt-3 flex items-center gap-2 flex-wrap">
-                                ${contact.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
-                              </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Coluna da Esquerda (Detalhes) -->
+                    <div class="md:col-span-1 space-y-6">
+                        <div class="bg-panel p-6 rounded-2xl">
+                            <div class="flex flex-col items-center">
+                                <div class="h-20 w-20 rounded-full bg-brand-blue text-white flex items-center justify-center text-3xl font-bold mb-4">
+                                    ${contact.name.charAt(0)}
+                                </div>
+                                <h1 class="text-2xl font-bold text-text">${contact.name} ${contact.sobrenome || ''}</h1>
+                                <p class="text-sm text-secondary">Criado ${timeSinceCreation} • Última atividade ${lastActivity}</p>
+                                <div class="mt-3 flex items-center gap-2 flex-wrap">
+                                    ${contact.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
+                                </div>
+                            </div>
                         </div>
-                        <button class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover" onclick="App.openDrawer('${contact.id}')"><i data-lucide="edit" class="h-4 w-4 mr-2"></i>Editar Item</button>
+
+                        <div class="bg-panel p-6 rounded-2xl">
+                            <h3 class="text-lg font-semibold mb-4">Alterar detalhes do contato</h3>
+                            <form id="contact-details-form" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-secondary">Nome</label>
+                                        <input name="name" value="${contact.name || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-secondary">Sobrenome</label>
+                                        <input name="sobrenome" value="${contact.sobrenome || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-secondary">Email</label>
+                                    <input name="email" value="${contact.email || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-secondary">Telefone</label>
+                                    <input name="phone" value="${contact.phone || ''}" placeholder="Apenas números" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-secondary">Empresa</label>
+                                    <input name="company" value="${contact.company || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                </div>
+                                <button type="submit" class="w-full h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Atualizar contato</button>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-base p-4 rounded-xl">
-                            <h4 class="text-sm font-semibold text-secondary mb-2">Valor do Negócio</h4>
-                            <p class="text-3xl font-bold text-green-400">R$ ${contact.value.toLocaleString('pt-BR')}</p>
+                    <!-- Coluna da Direita (Abas) -->
+                    <div class="md:col-span-2 bg-panel p-6 rounded-2xl">
+                        <div class="flex items-center border-b border-border">
+                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-brand-blue text-text" data-tab="notas">Notas</button>
+                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="atributos">Atributos</button>
+                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="historico">Histórico</button>
                         </div>
-                        <div class="bg-base p-4 rounded-xl">
-                            <h4 class="text-sm font-semibold text-secondary mb-2">Estágio Atual</h4>
-                            <p class="text-2xl font-semibold text-text">${board.lists.find(l=>l.id===contact.listId)?.name || 'N/A'}</p>
-                        </div>
-                         <div class="bg-base p-4 rounded-xl">
-                            <h4 class="text-sm font-semibold text-secondary mb-2">No Funil há</h4>
-                            <p class="text-2xl font-semibold text-text">${timeInPipe} dias</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-panel p-8 rounded-2xl">
-                    <h3 class="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">Progresso nas Etapas</h3>
-                    <div class="flex items-center">
-                    ${board.lists.filter(l => !['ganhou', 'perdido'].includes(l.id)).map((list, index) => `
-                        ${index > 0 ? `<div class="flex-1 h-px ${index <= currentStageIndex ? 'bg-brand-blue' : 'bg-border'}"></div>` : ''}
-                        <div class="flex items-center flex-col text-center w-24">
-                            <div class="h-8 w-8 rounded-full flex items-center justify-center ${index <= currentStageIndex ? 'bg-brand-blue text-white' : 'bg-border text-secondary'}">
-                                ${index < currentStageIndex ? `<i data-lucide="check" class="h-5 w-5"></i>` : (index === currentStageIndex ? `<i data-lucide="circle-dot" class="h-5 w-5"></i>` : `<span class="font-bold">${index + 1}</span>`)}
+                        
+                        <div id="contact-tab-content" class="mt-6">
+                            <!-- Aba de Notas -->
+                            <div id="tab-notas" class="contact-tab-panel">
+                                <h4 class="text-sm font-semibold text-secondary mb-2">Adicionar uma nota</h4>
+                                <textarea id="contact-note-textarea" class="w-full h-24 bg-base border border-border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="Digite sua nota...">${contact.notes || ''}</textarea>
+                                <div class="flex justify-end mt-2">
+                                    <button id="save-note-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar nota</button>
+                                </div>
                             </div>
-                            <p class="text-xs mt-2 font-medium ${index <= currentStageIndex ? 'text-text' : 'text-secondary'}">${list.name}</p>
-                        </div>
-                    `).join('')}
-                    </div>
-                </div>
 
-                <div class="bg-panel p-8 rounded-2xl">
-                    <h3 class="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">Histórico</h3>
-                    <div class="space-y-6">
-                    ${[...contact.timeline].reverse().map(entry => `
-                        <div class="flex gap-4">
-                            <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : 'pencil')}" class="h-5 w-5 text-white"></i>
+                            <!-- Aba de Atributos -->
+                            <div id="tab-atributos" class="contact-tab-panel hidden">
+                                <div id="attributes-list" class="space-y-3">
+                                    ${contact.attributes.map(attr => `
+                                        <div class="grid grid-cols-2 gap-3" data-attr-id="${attr.id}">
+                                            <input value="${attr.key}" data-field="key" placeholder="Nome do Atributo" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                            <input value="${attr.value}" data-field="value" placeholder="Valor" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button id="add-attribute-btn" class="mt-4 h-9 px-4 rounded-lg text-sm font-semibold bg-base text-secondary hover:bg-hover border border-border"><i data-lucide="plus" class="h-4 w-4 inline-block mr-1"></i> Adicionar atributo</button>
                             </div>
-                            <div>
-                                <p class="font-medium text-text">${this.getTimelineEntryText(entry, board.lists)}</p>
-                                <p class="text-sm text-secondary">${dayjs(entry.at).format('DD MMM YYYY [às] HH:mm')}</p>
+
+                            <!-- Aba de Histórico -->
+                            <div id="tab-historico" class="contact-tab-panel hidden">
+                                <div class="space-y-6">
+                                ${[...contact.timeline].reverse().map(entry => `
+                                    <div class="flex gap-4">
+                                        <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
+                                            <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : 'pencil')}" class="h-5 w-5 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-text">${this.getTimelineEntryText(entry, board.lists)}</p>
+                                            <p class="text-sm text-secondary">${dayjs(entry.at).format('DD MMM YYYY [às] HH:mm')}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                </div>
                             </div>
                         </div>
-                    `).join('')}
                     </div>
                 </div>
-            </div>
             `;
             lucide.createIcons();
+            
+            // Add Event Listeners for the new Contact Detail page
+            this.attachContactDetailListeners(contactId);
         },
+        
+        attachContactDetailListeners(contactId, activeTab = 'notas') { // Added activeTab parameter
+            const contact = this.state.contacts.find(c => c.id === contactId);
+            
+            // Function to set the active tab visually and internally
+            const setActiveTab = (tabId) => {
+                 document.querySelectorAll('.contact-tab-btn').forEach(b => {
+                    const isActive = b.dataset.tab === tabId;
+                    b.classList.toggle('border-brand-blue', isActive);
+                    b.classList.toggle('text-text', isActive);
+                    b.classList.toggle('border-transparent', !isActive);
+                    b.classList.toggle('text-secondary', !isActive);
+                });
+                document.querySelectorAll('.contact-tab-panel').forEach(p => p.classList.add('hidden'));
+                const panel = document.getElementById(`tab-${tabId}`);
+                if (panel) panel.classList.remove('hidden');
+            };
+
+            // Tab switching listeners
+            document.querySelectorAll('.contact-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+            });
+            
+             // Set initial active tab (important for the fix)
+            setActiveTab(activeTab);
+
+            // Save Details Form
+            document.getElementById('contact-details-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updates = Object.fromEntries(formData.entries());
+                this.updateCard(contactId, updates);
+                this.showToast('Contato atualizado!', 'success');
+                this.renderContactDetail(contactId); // Re-render
+            });
+
+            // Save Note
+            document.getElementById('save-note-btn').addEventListener('click', () => {
+                const note = document.getElementById('contact-note-textarea').value;
+                this.updateCard(contactId, { notes: note });
+                this.showToast('Nota salva!', 'success');
+            });
+
+            // Add Attribute
+            document.getElementById('add-attribute-btn').addEventListener('click', () => {
+                const newAttr = { id: this.uid(), key: '', value: '' };
+                contact.attributes.push(newAttr);
+                this.updateCard(contactId, { attributes: contact.attributes });
+                // FIX: Re-render and pass 'atributos' as the active tab
+                this.renderContactDetail(contactId); 
+                setActiveTab('atributos'); // Explicitly set tab after re-render
+            });
+
+            // Update Attribute
+            document.querySelectorAll('.attr-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const attrId = e.target.closest('[data-attr-id]').dataset.attrId;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    
+                    const attrIndex = contact.attributes.findIndex(a => a.id === attrId);
+                    if (attrIndex > -1) {
+                        contact.attributes[attrIndex][field] = value;
+                        this.updateCard(contactId, { attributes: contact.attributes });
+                        // No need to re-render the whole detail page, just save state
+                    }
+                });
+            });
+        },
+
 
         getTimelineEntryText(entry, lists) {
             switch(entry.t) {
@@ -726,6 +995,7 @@
         renderCardDrawer(card) {
             const board = this.state.boards[0];
             const availableLabels = board.availableLabels.filter(l => !card.labels.includes(l));
+            const availableMembers = board.availableMembers.filter(m => !card.members.includes(m.id));
 
             this.elements.cardDrawer.innerHTML = `
                 <div class="p-6 border-b border-border flex items-center justify-between">
@@ -734,10 +1004,35 @@
                 </div>
                 <div class="flex-1 p-6 overflow-y-auto space-y-6">
                     ${this.getDrawerFieldHtml('Nome do Lead', card, 'name', 'text')}
-                    ${this.getDrawerFieldHtml('Empresa', card, 'company', 'text')}
-                    ${this.getDrawerFieldHtml('Valor (R$)', card, 'value', 'number')}
+                    ${this.getDrawerFieldHtml('Empresa (Opcional)', card, 'company', 'text')}
+                    <!-- Valor Removido -->
                     ${this.getDrawerFieldHtml('E-mail', card, 'email', 'email')}
-                    ${this.getDrawerFieldHtml('Telefone', card, 'phone', 'tel')}
+                    ${this.getDrawerFieldHtml('Telefone (apenas números)', card, 'phone', 'tel')}
+
+                     <div>
+                        <label class="text-sm font-medium text-secondary">Responsáveis</label>
+                        <div id="drawer-members" class="flex flex-wrap gap-2 mt-2">
+                           ${card.members.map(mId => {
+                                const member = board.availableMembers.find(m => m.id === mId);
+                                return `
+                                <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
+                                    <img src="${member.avatar}" class="h-4 w-4 rounded-full" />
+                                    ${member.name}
+                                    <button class="remove-member-btn" data-member-id="${mId}"><i data-lucide="x" class="h-3 w-3"></i></button>
+                                </span>`
+                           }).join('')}
+                           <div class="relative">
+                               <button id="add-member-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
+                               <div id="member-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
+                                   ${availableMembers.map(m => `
+                                    <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover flex items-center gap-2 add-member-option" data-member-id="${m.id}">
+                                        <img src="${m.avatar}" class="h-5 w-5 rounded-full" /> ${m.name}
+                                    </button>
+                                   `).join('')}
+                               </div>
+                           </div>
+                        </div>
+                     </div>
 
                      <div>
                         <label class="text-sm font-medium text-secondary">Etiquetas</label>
@@ -812,7 +1107,11 @@
             input.focus();
 
             const save = () => {
-                const newValue = type === 'number' ? parseFloat(input.value) || 0 : input.value;
+                let newValue = type === 'number' ? parseFloat(input.value) || 0 : input.value;
+                if (type === 'tel') {
+                    newValue = newValue.replace(/\D/g,''); // Remove non-digits for phone
+                }
+
                 this.updateCard(cardId, { [key]: newValue });
                 
                 const newP = document.createElement('p');
@@ -820,10 +1119,7 @@
                 newP.textContent = newValue || 'Não definido';
                 input.replaceWith(newP);
                 this.showToast('Informação salva!', 'success');
-                
-                card.timeline.push({ t: 'edited', field: key, at: new Date().toISOString() });
-                this.saveState();
-                
+                                
                 this.handleRouteChange();
                 this.renderCardDrawer(card);
             };
@@ -869,7 +1165,7 @@
                             this.runAutomations('move_to', { card, toList });
         
                             this.saveState();
-                            this.renderKanbanBoard();
+                            this.renderKanbanView();
                         }
                     },
                 });
@@ -915,9 +1211,14 @@
                         <select id="sort-select" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
                             <option value="default" ${sortBy === 'default' ? 'selected' : ''}>Padrão</option>
                             <option value="value" ${sortBy === 'value' ? 'selected' : ''}>Maior Valor</option>
-                            <option value="createdAt" ${sortBy === 'createdAt' ? 'selected' : ''}>Mais Recentes</option>
+                            <option value="createdAt" ${sortBy === 'createdAt' ? 'selected' : ''}>Data de Criação</option>
                             <option value="name" ${sortBy === 'name' ? 'selected' : ''}>Ordem Alfabética</option>
                         </select>
+                    </div>
+                    <div class="border-t border-border"></div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-secondary mb-2">Data de Alteração</h4>
+                        <input id="filter-date-range" type="text" placeholder="Selecione um intervalo" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
                     </div>
                     <div class="border-t border-border"></div>
                     <div>
@@ -948,11 +1249,45 @@
                     </div>
                 </div>
             `;
+            this.initFilterDatepicker();
+        },
+        
+        initFilterDatepicker() {
+            if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
+            const dateInput = document.getElementById('filter-date-range'); // Define here
+            this.config.activeLitepicker = new Litepicker({
+                element: dateInput,
+                singleMode: false,
+                autoApply: true,
+                format: 'DD/MM/YYYY',
+                lang: 'pt-br',
+                buttonText: { apply: 'Aplicar', cancel: 'Cancelar' },
+                dropdowns: {
+                    minYear: 2020,
+                    maxYear: null,
+                    months: true,
+                    years: true,
+                },
+                setup: (picker) => {
+                    picker.on('selected', (date1, date2) => {
+                        this.state.viewState.filters.dateRange = { start: date1.dateInstance, end: date2.dateInstance };
+                        this.saveState();
+                        this.renderKanbanView();
+                    });
+                }
+            });
+            
+            const { dateRange } = this.state.viewState.filters;
+            if(dateRange && dateRange.start && dateRange.end) {
+                this.config.activeLitepicker.setDateRange(dateRange.start, dateRange.end);
+            } else if (dateInput) { // Check if element exists before setting value
+                dateInput.value = ''; // Clear input if no range is set
+            }
         },
 
         updateFilterIndicator() {
              const { filters } = this.state.viewState;
-             const isActive = filters.origin.length > 0 || filters.labels.length > 0;
+             const isActive = filters.origin.length > 0 || filters.labels.length > 0 || (filters.dateRange && filters.dateRange.start);
              this.elements.filterIndicator.classList.toggle('hidden', !isActive);
         },
 
@@ -979,23 +1314,29 @@
                 <div class="text-secondary mb-6">${content}</div>
                 <div class="flex justify-end gap-3">
                     <button id="modal-cancel" class="h-9 px-4 rounded-lg text-sm font-semibold bg-panel border border-border hover:bg-hover">Cancelar</button>
-                    <button id="modal-confirm" class="h-9 px-4 rounded-lg text-sm font-semibold text-white ${confirmClass}">${confirmText}</button>
+                    ${onConfirm ? `<button id="modal-confirm" class="h-9 px-4 rounded-lg text-sm font-semibold text-white ${confirmClass}">${confirmText}</button>` : ''}
                 </div>
             `;
             this.elements.modalOverlay.classList.remove('hidden');
             this.elements.modalOverlay.style.opacity = 1;
             this.elements.modalBox.style.transform = 'scale(1)';
+            
             const confirmBtn = document.getElementById('modal-confirm');
             const cancelBtn = document.getElementById('modal-cancel');
+            
             const closeModal = () => {
                 this.elements.modalOverlay.style.opacity = 0;
                 this.elements.modalBox.style.transform = 'scale(0.95)';
                 setTimeout(() => this.elements.modalOverlay.classList.add('hidden'), 300);
             };
-            confirmBtn.onclick = () => {
-                if (onConfirm) onConfirm();
-                closeModal();
-            };
+            
+            if(onConfirm) {
+                confirmBtn.onclick = () => {
+                    onConfirm();
+                    closeModal();
+                };
+            }
+            
             cancelBtn.onclick = closeModal;
             this.elements.modalOverlay.onclick = (e) => {
                 if(e.target === this.elements.modalOverlay) closeModal();
@@ -1006,8 +1347,8 @@
             const content = `
                 <form id="new-lead-form" class="space-y-4">
                     <div><label class="text-sm font-medium text-secondary">Nome do Lead</label><input name="name" required class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
-                    <div><label class="text-sm font-medium text-secondary">Empresa</label><input name="company" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
-                    <div><label class="text-sm font-medium text-secondary">Valor (R$)</label><input name="value" type="number" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
+                    <div><label class="text-sm font-medium text-secondary">Empresa (Opcional)</label><input name="company" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
+                    <div><label class="text-sm font-medium text-secondary">Telefone</label><input name="phone" type="tel" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
                 </form>
             `;
             this.showModal({
@@ -1015,11 +1356,33 @@
                 onConfirm: () => {
                     const form = document.getElementById('new-lead-form');
                     const formData = new FormData(form);
-                    const newCard = { id: this.uid(), listId, name: formData.get('name') || 'Novo Lead', company: formData.get('company') || '', value: parseFloat(formData.get('value')) || 0, email: '', phone: '', origin: 'Manual', priority: 'media', labels: [], members: ['AC'], createdAt: new Date().toISOString(), dueDate: null, checklist: [], timeline: [{ t: "created", at: new Date().toISOString() }] };
+                    const newCard = { 
+                        id: this.uid(), 
+                        listId, 
+                        name: formData.get('name') || 'Novo Lead', 
+                        sobrenome: '',
+                        company: formData.get('company') || '', 
+                        value: 0, 
+                        email: '', 
+                        phone: (formData.get('phone') || '').replace(/\D/g,''), 
+                        origin: 'Manual', 
+                        priority: 'media', 
+                        labels: [], 
+                        members: ['AC'], 
+                        createdAt: new Date().toISOString(), 
+                        dueDate: null, 
+                        checklist: [], 
+                        timeline: [{ t: "created", at: new Date().toISOString() }],
+                        notes: "",
+                        attributes: [],
+                        cidade: "",
+                        pais: "Brazil",
+                        biografia: ""
+                    };
                     this.state.boards[0].cards.push(newCard);
                     this.state.contacts.push({...newCard});
                     this.saveState();
-                    this.renderKanbanBoard();
+                    this.renderKanbanView();
                     this.showToast('Lead criado com sucesso!', 'success');
                 }
             })
@@ -1037,10 +1400,31 @@
                     const newList = { id: name.toLowerCase().replace(/\s/g, '-'), name: name, order: board.lists.length };
                     board.lists.push(newList);
                     this.saveState();
-                    this.renderKanbanBoard();
+                    this.renderKanbanView();
                     this.showToast('Nova etapa criada!', 'success');
                 }
             });
+        },
+        
+        showSendMessageModal(card) {
+            const content = `
+                <p class="text-secondary mb-4">Para qual canal você deseja enviar uma mensagem para ${card.name}?</p>
+                <div class="space-y-3">
+                    <a href="https://wa.me/${card.phone || ''}" target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
+                        <i data-lucide="message-circle" class="h-5 w-5 text-green-500"></i>
+                        <span>WhatsApp</span>
+                    </a>
+                    <a href="https://ig.me/m/..." target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
+                        <i data-lucide="instagram" class="h-5 w-5 text-pink-500"></i>
+                        <span>Instagram DM</span>
+                    </a>
+                </div>
+            `;
+            this.showModal({
+                title: 'Enviar Mensagem',
+                content: content,
+            });
+            lucide.createIcons();
         },
 
 
@@ -1050,9 +1434,43 @@
           this.elements.drawerOverlay.addEventListener('click', () => this.closeDrawer());
           this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.showNewLeadModal());
           
+           // Main View Toggle (Board/List)
+           this.elements.mainViewToggle.addEventListener('click', () => {
+             const currentView = this.state.viewState.activeMainView;
+             if (currentView === 'board' || currentView === 'list') {
+                 this.state.viewState.activeMainView = currentView === 'board' ? 'list' : 'board';
+                 this.config.previousMainView = this.state.viewState.activeMainView; // Update previous view
+                 this.saveState();
+                 this.renderKanbanView();
+             } else { // If on calendar, just switch main view state without rendering yet
+                 this.state.viewState.activeMainView = this.config.previousMainView === 'board' ? 'list' : 'board';
+                 this.config.previousMainView = this.state.viewState.activeMainView;
+                 this.saveState();
+                 this.renderKanbanView(); // Re-render to update button text
+             }
+          });
+
+          // Calendar View Toggle
+          this.elements.calendarViewToggle.addEventListener('click', () => {
+             const currentView = this.state.viewState.activeMainView;
+             if (currentView === 'calendar') {
+                 // Return to previous main view (board or list)
+                 this.state.viewState.activeMainView = this.config.previousMainView;
+             } else {
+                 // Go to calendar, remember current main view
+                 this.config.previousMainView = currentView;
+                 this.state.viewState.activeMainView = 'calendar';
+             }
+             this.saveState(); 
+             this.renderKanbanView();
+          });
+          
           this.elements.filterBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               this.elements.filterPopup.classList.toggle('hidden');
+              if(!this.elements.filterPopup.classList.contains('hidden')) {
+                  this.initFilterDatepicker(); // Re-init datepicker every time it opens
+              }
           });
 
           this.elements.filterPopup.addEventListener('change', (e) => {
@@ -1065,20 +1483,24 @@
                if (e.target.closest('#label-filters')) {
                   this.state.viewState.filters.labels = [...document.querySelectorAll('#label-filters input:checked')].map(el => el.value);
               }
-              this.renderKanbanBoard();
+              this.saveState(); // Salva filtros
+              this.renderKanbanView();
           });
           
           this.elements.filterPopup.addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevents popup from closing
               if(e.target.id === 'clear-filters-btn') {
-                  this.state.viewState.filters = { origin: [], labels: [] };
+                  this.state.viewState.filters = { origin: [], labels: [], dateRange: { start: null, end: null } };
                   this.state.viewState.sortBy = 'default';
+                  if (this.config.activeLitepicker) this.config.activeLitepicker.clearSelection();
+                  this.saveState(); // Salva filtros limpos
                   this.renderFilterPopup();
-                  this.renderKanbanBoard();
+                  this.renderKanbanView();
               }
           });
 
           document.addEventListener('click', (e) => {
-              if (!this.elements.filterPopup.contains(e.target) && !this.elements.filterBtn.contains(e.target)) {
+              if (this.elements.filterPopup && !this.elements.filterPopup.contains(e.target) && this.elements.filterBtn && !this.elements.filterBtn.contains(e.target)) {
                   this.elements.filterPopup.classList.add('hidden');
               }
           });
@@ -1087,6 +1509,8 @@
               if (e.target.closest('#close-drawer')) this.closeDrawer();
               const field = e.target.closest('.editable-field p');
               if (field) this.makeFieldEditable(field.parentElement);
+              
+              // Label Logic
               const addLabelBtn = e.target.closest('#add-label-btn');
               if(addLabelBtn) document.getElementById('label-dropdown').classList.toggle('hidden');
               const addLabelOption = e.target.closest('.add-label-option');
@@ -1096,7 +1520,7 @@
                   card.labels.push(addLabelOption.dataset.label);
                   this.updateCard(cardId, { labels: card.labels });
                   this.renderCardDrawer(card);
-                  this.renderKanbanBoard();
+                  this.renderKanbanView();
               }
               const removeLabelBtn = e.target.closest('.remove-label-btn');
               if(removeLabelBtn) {
@@ -1105,18 +1529,42 @@
                   const newLabels = card.labels.filter(l => l !== removeLabelBtn.dataset.label);
                   this.updateCard(cardId, { labels: newLabels });
                   this.renderCardDrawer(card);
-                  this.renderKanbanBoard();
+                  this.renderKanbanView();
               }
+              
+              // Member Logic
+              const addMemberBtn = e.target.closest('#add-member-btn');
+              if(addMemberBtn) document.getElementById('member-dropdown').classList.toggle('hidden');
+              const addMemberOption = e.target.closest('.add-member-option');
+              if(addMemberOption) {
+                  const cardId = this.elements.cardDrawer.dataset.cardId;
+                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  card.members.push(addMemberOption.dataset.memberId);
+                  this.updateCard(cardId, { members: card.members });
+                  this.renderCardDrawer(card);
+                  this.renderKanbanView();
+              }
+              const removeMemberBtn = e.target.closest('.remove-member-btn');
+              if(removeMemberBtn) {
+                  const cardId = this.elements.cardDrawer.dataset.cardId;
+                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  const newMembers = card.members.filter(m => m !== removeMemberBtn.dataset.memberId);
+                  this.updateCard(cardId, { members: newMembers });
+                  this.renderCardDrawer(card);
+                  this.renderKanbanView();
+              }
+
               if (e.target.closest('#delete-lead-btn')) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   this.showModal({
                       title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
+                      confirmText: 'Excluir',
                       onConfirm: () => {
                           this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
                           this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
                           this.saveState();
                           this.closeDrawer();
-                          this.handleRouteChange();
+                          this.handleRouteChange(); // Refresh view or redirect
                           this.showToast('Lead excluído.', 'info');
                       }
                   });
@@ -1124,17 +1572,24 @@
           });
 
           this.elements.viewsContainer.addEventListener('click', (e) => {
-              const cardElement = e.target.closest('.kanban-card');
+              const cardElement = e.target.closest('.kanban-card, .list-view-row'); // Added list-view-row
               const addLeadBtn = e.target.closest('.add-lead-in-list');
               const cardMenuBtn = e.target.closest('.card-action-menu');
+              const sendMessageBtn = e.target.closest('.card-send-message');
 
-              if (cardMenuBtn) {
+              if (sendMessageBtn) {
+                  e.stopPropagation();
+                  const cardId = sendMessageBtn.dataset.cardId;
+                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  if (card) this.showSendMessageModal(card);
+              } else if (cardMenuBtn) {
                   e.stopPropagation();
                   this.openDrawer(cardMenuBtn.closest('.kanban-card').dataset.cardId);
               } else if (cardElement) {
                   if(cardElement.closest('#calendar-grid')){
                      this.openDrawer(cardElement.dataset.cardId);
                   } else {
+                     // Navigate to contact detail from Kanban card OR List view row
                      window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
                   }
               } else if (addLeadBtn) {
@@ -1142,7 +1597,7 @@
               }
           });
           
-          this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanBoard());
+          this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanView());
           document.addEventListener('keydown', (e) => {
               if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
                   e.preventDefault();
@@ -1160,6 +1615,10 @@
           });
           this.elements.calendar.nextBtn.addEventListener('click', () => {
               this.config.currentDate = this.config.currentDate.add(1, 'month');
+              this.renderCalendar();
+          });
+          this.elements.calendar.todayBtn.addEventListener('click', () => {
+              this.config.currentDate = dayjs();
               this.renderCalendar();
           });
         }
