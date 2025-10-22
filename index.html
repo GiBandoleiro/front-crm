@@ -29,6 +29,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isoWeek.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isBetween.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/pt-br.js"></script>
   
   <!-- Custom Styles and Tailwind Config -->
   <style type="text/tailwindcss">
@@ -95,11 +96,19 @@
          background-color: #1E293B !important;
       }
        .dark .litepicker .button-cancel {
-        color: #F8FAFC !important;
+         color: #F8FAFC !important;
       }
       /* List View Specific Styles */
        .list-view-row:hover {
-           @apply bg-hover;
+          @apply bg-hover;
+       }
+      /* Ensure empty list card area is droppable */
+       .list-cards {
+          @apply min-h-[80px]; /* Added minimum height */
+       }
+       /* Log Modal Style */
+       #logs-content-area {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
        }
     }
   </style>
@@ -141,6 +150,15 @@
       <nav id="sidebar-nav" class="flex-1 p-4 space-y-1">
         <!-- Navigation items will be injected here by JS -->
       </nav>
+      
+      <!-- NOVO: Botão de Logs -->
+      <div class="p-4 border-t border-border">
+        <button id="show-logs-btn" class="w-full flex items-center justify-start px-3 py-2 rounded-lg text-secondary hover:bg-hover hover:text-text font-medium transition-colors">
+            <i data-lucide="terminal" class="h-5 w-5 mr-3"></i>
+            <span>Logs do Sistema</span>
+        </button>
+      </div>
+
       <div class="p-4 border-t border-border">
         <div class="flex items-center">
           <img class="h-10 w-10 rounded-full object-cover" src="https://i.pravatar.cc/150?u=AC" alt="User Avatar">
@@ -164,14 +182,18 @@
             </div>
         </div>
         <div class="flex items-center space-x-3">
-          <button id="theme-toggle" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Alternar tema">
-            <i data-lucide="sun" class="h-5 w-5 block dark:hidden"></i>
-            <i data-lucide="moon" class="h-5 w-5 hidden dark:block"></i>
-          </button>
-           <button id="add-new-lead-header" class="h-9 px-4 flex items-center justify-center rounded-lg bg-brand-blue text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
-            <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
-            Novo Lead
-          </button>
+            <!-- NOVO: Botão de Atualizar -->
+            <button id="refresh-data-btn" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Atualizar dados">
+                <i data-lucide="refresh-cw" class="h-5 w-5"></i>
+            </button>
+            <button id="theme-toggle" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Alternar tema">
+                <i data-lucide="sun" class="h-5 w-5 block dark:hidden"></i>
+                <i data-lucide="moon" class="h-5 w-5 hidden dark:block"></i>
+            </button>
+            <button id="add-new-lead-header" class="h-9 px-4 flex items-center justify-center rounded-lg bg-brand-blue text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+                <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+                Novo Lead
+            </button>
         </div>
       </header>
 
@@ -204,8 +226,9 @@
           </div>
           
           <!-- Kanban Board Wrapper -->
+          <!-- ATUALIZADO: items-stretch faz as colunas esticarem -->
           <div id="kanban-board-wrapper" class="flex-1 overflow-hidden -mx-6">
-            <div id="kanban-board" class="flex gap-6 overflow-x-auto pb-4 px-6 items-start h-full">
+            <div id="kanban-board" class="flex gap-6 overflow-x-auto pb-4 px-6 items-stretch h-full">
               <!-- Kanban lists will be injected here -->
             </div>
           </div>
@@ -234,18 +257,18 @@
           <!-- Calendar Wrapper (hidden by default) -->
           <div id="calendar-wrapper" class="hidden h-full flex flex-col flex-1">
              <div class="flex items-center justify-between mb-4">
-               <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2">
                   <button id="calendar-prev" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
                   <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
                   <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
-               </div>
-               <div>
+                </div>
+                <div>
                   <button id="calendar-today" class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
-               </div>
+                </div>
              </div>
              <div id="calendar-grid-header" class="grid grid-cols-7"></div>
              <div id="calendar-grid" class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-border border-t border-l border-border rounded-lg overflow-hidden">
-                <!-- Calendar days injected here -->
+               <!-- Calendar days injected here -->
              </div>
           </div>
 
@@ -292,6 +315,7 @@
       window.App = {
         // --- STATE & CONFIG ---
         state: {},
+        logs: [], // NOVO: Para logs da API
         elements: {
           app: document.getElementById('app'),
           sidebarNav: document.getElementById('sidebar-nav'),
@@ -316,6 +340,8 @@
           filterBtn: document.getElementById('filter-btn'),
           filterPopup: document.getElementById('filter-popup'),
           filterIndicator: document.getElementById('filter-indicator'),
+          refreshDataBtn: document.getElementById('refresh-data-btn'), // NOVO
+          showLogsBtn: document.getElementById('show-logs-btn'), // NOVO
           calendar: {
               grid: document.getElementById('calendar-grid'),
               gridHeader: document.getElementById('calendar-grid-header'),
@@ -342,12 +368,47 @@
         init() {
           this.initTheme();
           this.loadState();
+          this.addLog('Aplicação iniciada, estado carregado.'); // NOVO
           this.initRouter();
           this.renderSidebar();
           this.attachEventListeners();
           lucide.createIcons();
         },
         
+        // --- LOGGING & API MOCK ---
+        addLog(message, type = 'info') {
+            const time = dayjs().format('HH:mm:ss');
+            console.log(`[LOG ${time}]: ${message}`);
+            this.logs.push({ message, type, time: new Date().toISOString() });
+            if (this.logs.length > 100) this.logs.shift(); // Keep logs reasonable
+            this.renderLogsInModal(); // Update modal if open
+        },
+
+        // Mock API PUT
+        apiPutLeads(reason) {
+            this.addLog(`[PUT /crm/leads] Salvando... (Motivo: ${reason})`);
+            // Simulação de salvamento instantâneo no localStorage
+            this.saveState(); 
+            this.addLog(`[PUT /crm/leads] Estado salvo com sucesso.`, 'success');
+            
+            // Imediatamente dispara o GET
+            this.apiGetLeads(`Atualização pós-${reason}`);
+        },
+
+        // Mock API GET
+        apiGetLeads(reason = 'Atualização manual') {
+            this.addLog(`[GET /crm/leads] Puxando dados... (Motivo: ${reason})`);
+            const spinIcon = this.elements.refreshDataBtn.querySelector('i');
+            if(spinIcon) spinIcon.classList.add('animate-spin');
+            
+            setTimeout(() => { // Simular atraso de rede
+                this.loadState(); // O "load" real
+                this.addLog(`[GET /crm/leads] Dados recebidos.`, 'success');
+                this.handleRouteChange(); // Re-renderizar tudo
+                if(spinIcon) spinIcon.classList.remove('animate-spin');
+            }, 800);
+        },
+
         // --- STATE MANAGEMENT ---
         uid() {
           return Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -370,6 +431,7 @@
         },
         
         saveState() {
+          // Esta é a única função que escreve no localStorage
           localStorage.setItem('crmCentral', JSON.stringify(this.state));
         },
         
@@ -391,7 +453,10 @@
                 if(contactIndex !== -1) {
                     this.state.contacts[contactIndex] = { ...this.state.contacts[contactIndex], ...updates };
                 }
-                this.saveState();
+                
+                // ATUALIZADO: Chamar API PUT
+                this.apiPutLeads(`Atualização de card: ${Object.keys(updates).join(', ')}`);
+                
                 return board.cards[cardIndex];
             }
             return null;
@@ -410,7 +475,7 @@
                 {id:"lead_7", listId:"proposta", name:"Roberto", sobrenome:"Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"27987651234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null},
                 {id:"lead_8", listId:"proposta", name:"Juliana", sobrenome:"Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"41918248614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null},
                 {id:"lead_9", listId:"ganhou", name:"Sandra", sobrenome:"Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"51998234512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null},
-            ].map(c => ({...c, 
+              ].map(c => ({...c, 
                 checklist: [{id:this.uid(),text:"Retornar contato",done:Math.random()>0.5}], 
                 timeline:[{t:"created",at:c.createdAt}],
                 notes: "",
@@ -418,7 +483,7 @@
                 cidade: "",
                 pais: "Brazil",
                 biografia: ""
-            }));
+              }));
 
           this.state = {
             preferences: { theme: 'dark', savedViews: [] },
@@ -426,7 +491,7 @@
               id: "leads-br",
               name: "Leads BR",
               availableLabels: ["Quente", "Urgente", "Novo", "Corporativo", "Grande Porte", "Pequeno", "E-commerce", "Médio Porte", "Educação", "Logística", "Marketing", "Imobiliário"],
-               availableMembers: [
+                availableMembers: [
                     { id: 'AC', name: 'Ana Costa', avatar: 'https://i.pravatar.cc/150?u=AC' },
                     { id: 'BL', name: 'Bruno Lima', avatar: 'https://i.pravatar.cc/150?u=BL' },
                     { id: 'CS', name: 'Carla Souza', avatar: 'https://i.pravatar.cc/150?u=CS' }
@@ -454,7 +519,9 @@
                 activeMainView: 'board'
             }
           };
-          this.saveState();
+          
+          // ATUALIZADO: Chamar API PUT
+          this.apiPutLeads('Estado inicial (seed)');
         },
         
         // --- THEME ---
@@ -543,10 +610,11 @@
                     board.cards[cardIndex].members.push(automation.payload.member);
                     this.showToast(`${card.name} atribuído para ${automation.payload.member}`, 'info');
                 }
-              }
+               }
               break;
           }
-          this.saveState();
+          // ATUALIZADO: Chamar API PUT
+          this.apiPutLeads(`Automação: ${automation.do}`);
         },
 
         // --- RENDER FUNCTIONS ---
@@ -651,7 +719,8 @@
                         <button class="h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
                       </div>
                     </div>
-                    <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto" style="max-height: calc(100vh - 300px);">
+                    <!-- ATUALIZADO: removido max-height, flex-1 faz preencher o espaço -->
+                    <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto">
                       ${listCards.map(card => this.getCardHtml(card)).join('')}
                     </div>
                     <div class="p-2">
@@ -662,11 +731,11 @@
             }).join('');
 
             boardHtml += `
-                <div class="w-[320px] flex-shrink-0">
-                    <button id="add-new-list-btn" class="w-full bg-base/50 text-secondary hover:bg-base hover:text-text transition-colors rounded-2xl p-4 flex items-center justify-center font-semibold">
-                       <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Adicionar outra etapa
-                    </button>
-                </div>
+              <div class="w-[320px] flex-shrink-0">
+                  <button id="add-new-list-btn" class="w-full bg-base/50 text-secondary hover:bg-base hover:text-text transition-colors rounded-2xl p-4 flex items-center justify-center font-semibold">
+                     <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Adicionar outra etapa
+                  </button>
+              </div>
             `;
 
             this.elements.kanbanBoard.innerHTML = boardHtml;
@@ -924,10 +993,10 @@
                     b.classList.toggle('text-text', isActive);
                     b.classList.toggle('border-transparent', !isActive);
                     b.classList.toggle('text-secondary', !isActive);
-                });
-                document.querySelectorAll('.contact-tab-panel').forEach(p => p.classList.add('hidden'));
-                const panel = document.getElementById(`tab-${tabId}`);
-                if (panel) panel.classList.remove('hidden');
+                 });
+                 document.querySelectorAll('.contact-tab-panel').forEach(p => p.classList.add('hidden'));
+                 const panel = document.getElementById(`tab-${tabId}`);
+                 if (panel) panel.classList.remove('hidden');
             };
 
             // Tab switching listeners
@@ -943,15 +1012,15 @@
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const updates = Object.fromEntries(formData.entries());
-                this.updateCard(contactId, updates);
+                this.updateCard(contactId, updates); // This will trigger apiPutLeads
                 this.showToast('Contato atualizado!', 'success');
-                this.renderContactDetail(contactId); // Re-render
+                // Re-render is handled by apiGetLeads
             });
 
             // Save Note
             document.getElementById('save-note-btn').addEventListener('click', () => {
                 const note = document.getElementById('contact-note-textarea').value;
-                this.updateCard(contactId, { notes: note });
+                this.updateCard(contactId, { notes: note }); // This will trigger apiPutLeads
                 this.showToast('Nota salva!', 'success');
             });
 
@@ -959,10 +1028,8 @@
             document.getElementById('add-attribute-btn').addEventListener('click', () => {
                 const newAttr = { id: this.uid(), key: '', value: '' };
                 contact.attributes.push(newAttr);
-                this.updateCard(contactId, { attributes: contact.attributes });
-                // FIX: Re-render and pass 'atributos' as the active tab
-                this.renderContactDetail(contactId); 
-                setActiveTab('atributos'); // Explicitly set tab after re-render
+                this.updateCard(contactId, { attributes: contact.attributes }); // This will trigger apiPutLeads
+                // Re-render will happen via apiGetLeads
             });
 
             // Update Attribute
@@ -975,8 +1042,7 @@
                     const attrIndex = contact.attributes.findIndex(a => a.id === attrId);
                     if (attrIndex > -1) {
                         contact.attributes[attrIndex][field] = value;
-                        this.updateCard(contactId, { attributes: contact.attributes });
-                        // No need to re-render the whole detail page, just save state
+                        this.updateCard(contactId, { attributes: contact.attributes }); // This will trigger apiPutLeads
                     }
                 });
             });
@@ -1010,9 +1076,9 @@
                     ${this.getDrawerFieldHtml('Telefone (apenas números)', card, 'phone', 'tel')}
 
                      <div>
-                        <label class="text-sm font-medium text-secondary">Responsáveis</label>
-                        <div id="drawer-members" class="flex flex-wrap gap-2 mt-2">
-                           ${card.members.map(mId => {
+                         <label class="text-sm font-medium text-secondary">Responsáveis</label>
+                         <div id="drawer-members" class="flex flex-wrap gap-2 mt-2">
+                            ${card.members.map(mId => {
                                 const member = board.availableMembers.find(m => m.id === mId);
                                 return `
                                 <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
@@ -1020,24 +1086,24 @@
                                     ${member.name}
                                     <button class="remove-member-btn" data-member-id="${mId}"><i data-lucide="x" class="h-3 w-3"></i></button>
                                 </span>`
-                           }).join('')}
-                           <div class="relative">
-                               <button id="add-member-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
-                               <div id="member-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
+                            }).join('')}
+                            <div class="relative">
+                                <button id="add-member-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
+                                <div id="member-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
                                    ${availableMembers.map(m => `
                                     <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover flex items-center gap-2 add-member-option" data-member-id="${m.id}">
                                         <img src="${m.avatar}" class="h-5 w-5 rounded-full" /> ${m.name}
                                     </button>
                                    `).join('')}
-                               </div>
-                           </div>
-                        </div>
-                     </div>
+                                </div>
+                            </div>
+                         </div>
+                       </div>
 
                      <div>
-                        <label class="text-sm font-medium text-secondary">Etiquetas</label>
-                        <div id="drawer-labels" class="flex flex-wrap gap-2 mt-2">
-                           ${card.labels.map(label => `
+                         <label class="text-sm font-medium text-secondary">Etiquetas</label>
+                         <div id="drawer-labels" class="flex flex-wrap gap-2 mt-2">
+                            ${card.labels.map(label => `
                                 <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
                                     ${label}
                                     <button class="remove-label-btn" data-label="${label}"><i data-lucide="x" class="h-3 w-3"></i></button>
@@ -1049,11 +1115,11 @@
                                     ${availableLabels.map(l => `<button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover add-label-option" data-label="${l}">${l}</button>`).join('')}
                                 </div>
                             </div>
-                        </div>
-                     </div>
+                         </div>
+                       </div>
                 </div>
                  <div class="p-6 border-t border-border bg-base flex gap-2">
-                    <button id="delete-lead-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">Excluir Lead</button>
+                   <button id="delete-lead-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">Excluir Lead</button>
                  </div>
             `;
             lucide.createIcons();
@@ -1112,16 +1178,15 @@
                     newValue = newValue.replace(/\D/g,''); // Remove non-digits for phone
                 }
 
-                this.updateCard(cardId, { [key]: newValue });
+                this.updateCard(cardId, { [key]: newValue }); // This will trigger apiPutLeads
                 
                 const newP = document.createElement('p');
                 newP.className = "text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md";
                 newP.textContent = newValue || 'Não definido';
                 input.replaceWith(newP);
                 this.showToast('Informação salva!', 'success');
-                                
-                this.handleRouteChange();
-                this.renderCardDrawer(card);
+                                      
+                // Re-render is handled by apiGetLeads
             };
 
             input.addEventListener('blur', save);
@@ -1142,7 +1207,8 @@
                     const [movedList] = board.lists.splice(evt.oldIndex, 1);
                     board.lists.splice(evt.newIndex, 0, movedList);
                     board.lists.forEach((list, index) => list.order = index);
-                    this.saveState();
+                    // ATUALIZADO: Chamar API PUT
+                    this.apiPutLeads('Movimentação de coluna');
                 },
             });
 
@@ -1163,9 +1229,9 @@
                             
                             const toList = board.lists.find(l => l.id === toListId);
                             this.runAutomations('move_to', { card, toList });
-        
-                            this.saveState();
-                            this.renderKanbanView();
+       
+                            // ATUALIZADO: Chamar API PUT (runAutomations já chama, mas o movimento em si também deve)
+                            this.apiPutLeads(`Movimentação de lead: ${card.name}`);
                         }
                     },
                 });
@@ -1188,8 +1254,9 @@
                             const oldDate = board.cards[cardIndex].createdAt;
                             board.cards[cardIndex].createdAt = dayjs(newDate).toISOString();
                             board.cards[cardIndex].timeline.push({ t: "rescheduled", from: oldDate, to: newDate, at: new Date().toISOString() });
-                            this.saveState();
-                            this.renderCalendar(); 
+                            
+                            // ATUALIZADO: Chamar API PUT
+                            this.apiPutLeads(`Reagendamento de lead: ${board.cards[cardIndex].name}`);
                             this.showToast(`Lead ${board.cards[cardIndex].name} movido para ${dayjs(newDate).format('DD/MM')}`, 'info');
                         }
                     }
@@ -1243,7 +1310,7 @@
                                 </label>
                             `).join('')}
                         </div>
-                    </div>
+                     </div>
                     <div class="border-t border-border pt-4 flex justify-between items-center">
                         <button id="clear-filters-btn" class="text-sm text-secondary hover:text-text">Limpar Filtros</button>
                     </div>
@@ -1271,8 +1338,8 @@
                 setup: (picker) => {
                     picker.on('selected', (date1, date2) => {
                         this.state.viewState.filters.dateRange = { start: date1.dateInstance, end: date2.dateInstance };
-                        this.saveState();
-                        this.renderKanbanView();
+                        // ATUALIZADO: Chamar API PUT
+                        this.apiPutLeads('Alteração de filtro de data');
                     });
                 }
             });
@@ -1342,6 +1409,58 @@
                 if(e.target === this.elements.modalOverlay) closeModal();
             }
         },
+
+        // NOVO: Modal de Logs
+        showLogsModal() {
+            const logsHtml = this.logs.length > 0 
+                ? [...this.logs].reverse().map(log => {
+                    const time = dayjs(log.time).format('HH:mm:ss');
+                    const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
+                    const icon = log.type === 'error' ? 'alert-circle' : (log.type === 'success' ? 'check-circle' : 'arrow-right-circle');
+                    return `<div class="flex items-center gap-2 ${color}">
+                                <i data-lucide="${icon}" class="h-3 w-3 flex-shrink-0"></i>
+                                <span class="text-xs mr-1">[${time}]</span>
+                                <span class="text-sm">${log.message}</span>
+                            </div>`;
+                }).join('')
+                : '<p class="text-secondary">Nenhum log registrado.</p>';
+            
+            const content = `<div id="logs-content-area" class="w-full h-80 overflow-y-auto bg-base p-3 rounded-lg border border-border space-y-2">${logsHtml}</div>`;
+            
+            this.showModal({
+                title: 'Logs do Sistema',
+                content: content,
+                confirmText: 'Limpar Logs',
+                confirmClass: 'bg-yellow-600 hover:bg-yellow-700',
+                onConfirm: () => {
+                    this.logs = [];
+                    this.addLog('Logs limpos.', 'info');
+                    this.showLogsModal(); // Re-render modal
+                }
+            });
+            lucide.createIcons();
+        },
+
+        // NOVO: Renderiza logs no modal se estiver aberto
+        renderLogsInModal() {
+            const modalArea = document.getElementById('logs-content-area');
+            if (modalArea) {
+                 const logsHtml = this.logs.length > 0 
+                    ? [...this.logs].reverse().map(log => {
+                        const time = dayjs(log.time).format('HH:mm:ss');
+                        const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
+                        const icon = log.type === 'error' ? 'alert-circle' : (log.type === 'success' ? 'check-circle' : 'arrow-right-circle');
+                        return `<div class="flex items-center gap-2 ${color}">
+                                <i data-lucide="${icon}" class="h-3 w-3 flex-shrink-0"></i>
+                                <span class="text-xs mr-1">[${time}]</span>
+                                <span class="text-sm">${log.message}</span>
+                            </div>`;
+                    }).join('')
+                    : '<p class="text-secondary">Nenhum log registrado.</p>';
+                modalArea.innerHTML = logsHtml;
+                lucide.createIcons();
+            }
+        },
         
         showNewLeadModal(listId = 'novo') {
             const content = `
@@ -1381,8 +1500,9 @@
                     };
                     this.state.boards[0].cards.push(newCard);
                     this.state.contacts.push({...newCard});
-                    this.saveState();
-                    this.renderKanbanView();
+                    
+                    // ATUALIZADO: Chamar API PUT
+                    this.apiPutLeads('Criação de novo lead');
                     this.showToast('Lead criado com sucesso!', 'success');
                 }
             })
@@ -1399,8 +1519,9 @@
                     const board = this.state.boards[0];
                     const newList = { id: name.toLowerCase().replace(/\s/g, '-'), name: name, order: board.lists.length };
                     board.lists.push(newList);
-                    this.saveState();
-                    this.renderKanbanView();
+                    
+                    // ATUALIZADO: Chamar API PUT
+                    this.apiPutLeads('Criação de nova etapa');
                     this.showToast('Nova etapa criada!', 'success');
                 }
             });
@@ -1433,6 +1554,8 @@
           this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
           this.elements.drawerOverlay.addEventListener('click', () => this.closeDrawer());
           this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.showNewLeadModal());
+          this.elements.refreshDataBtn.addEventListener('click', () => this.apiGetLeads('Atualização manual')); // NOVO
+          this.elements.showLogsBtn.addEventListener('click', () => this.showLogsModal()); // NOVO
           
            // Main View Toggle (Board/List)
            this.elements.mainViewToggle.addEventListener('click', () => {
@@ -1440,13 +1563,11 @@
              if (currentView === 'board' || currentView === 'list') {
                  this.state.viewState.activeMainView = currentView === 'board' ? 'list' : 'board';
                  this.config.previousMainView = this.state.viewState.activeMainView; // Update previous view
-                 this.saveState();
-                 this.renderKanbanView();
+                 this.apiPutLeads('Troca de visão (kanban/lista)'); // Salva a troca de visão
              } else { // If on calendar, just switch main view state without rendering yet
                  this.state.viewState.activeMainView = this.config.previousMainView === 'board' ? 'list' : 'board';
                  this.config.previousMainView = this.state.viewState.activeMainView;
-                 this.saveState();
-                 this.renderKanbanView(); // Re-render to update button text
+                 this.apiPutLeads('Troca de visão (kanban/lista)'); // Salva a troca de visão
              }
           });
 
@@ -1461,8 +1582,7 @@
                  this.config.previousMainView = currentView;
                  this.state.viewState.activeMainView = 'calendar';
              }
-             this.saveState(); 
-             this.renderKanbanView();
+             this.apiPutLeads('Troca de visão (calendário)'); // Salva a troca de visão
           });
           
           this.elements.filterBtn.addEventListener('click', (e) => {
@@ -1482,9 +1602,9 @@
               }
                if (e.target.closest('#label-filters')) {
                   this.state.viewState.filters.labels = [...document.querySelectorAll('#label-filters input:checked')].map(el => el.value);
-              }
-              this.saveState(); // Salva filtros
-              this.renderKanbanView();
+               }
+               // ATUALIZADO: Chamar API PUT
+               this.apiPutLeads('Alteração de filtro/ordem');
           });
           
           this.elements.filterPopup.addEventListener('click', (e) => {
@@ -1493,9 +1613,9 @@
                   this.state.viewState.filters = { origin: [], labels: [], dateRange: { start: null, end: null } };
                   this.state.viewState.sortBy = 'default';
                   if (this.config.activeLitepicker) this.config.activeLitepicker.clearSelection();
-                  this.saveState(); // Salva filtros limpos
-                  this.renderFilterPopup();
-                  this.renderKanbanView();
+                  // ATUALIZADO: Chamar API PUT
+                  this.apiPutLeads('Limpeza de filtros');
+                  this.renderFilterPopup(); // Re-render o popup com valores limpos
               }
           });
 
@@ -1518,18 +1638,14 @@
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
                   card.labels.push(addLabelOption.dataset.label);
-                  this.updateCard(cardId, { labels: card.labels });
-                  this.renderCardDrawer(card);
-                  this.renderKanbanView();
+                  this.updateCard(cardId, { labels: card.labels }); // Dispara API
               }
               const removeLabelBtn = e.target.closest('.remove-label-btn');
               if(removeLabelBtn) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
                   const newLabels = card.labels.filter(l => l !== removeLabelBtn.dataset.label);
-                  this.updateCard(cardId, { labels: newLabels });
-                  this.renderCardDrawer(card);
-                  this.renderKanbanView();
+                  this.updateCard(cardId, { labels: newLabels }); // Dispara API
               }
               
               // Member Logic
@@ -1540,18 +1656,14 @@
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
                   card.members.push(addMemberOption.dataset.memberId);
-                  this.updateCard(cardId, { members: card.members });
-                  this.renderCardDrawer(card);
-                  this.renderKanbanView();
+                  this.updateCard(cardId, { members: card.members }); // Dispara API
               }
               const removeMemberBtn = e.target.closest('.remove-member-btn');
               if(removeMemberBtn) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
                   const newMembers = card.members.filter(m => m !== removeMemberBtn.dataset.memberId);
-                  this.updateCard(cardId, { members: newMembers });
-                  this.renderCardDrawer(card);
-                  this.renderKanbanView();
+                  this.updateCard(cardId, { members: newMembers }); // Dispara API
               }
 
               if (e.target.closest('#delete-lead-btn')) {
@@ -1562,9 +1674,9 @@
                       onConfirm: () => {
                           this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
                           this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
-                          this.saveState();
+                          // ATUALIZADO: Chamar API PUT
+                          this.apiPutLeads('Exclusão de lead');
                           this.closeDrawer();
-                          this.handleRouteChange(); // Refresh view or redirect
                           this.showToast('Lead excluído.', 'info');
                       }
                   });
@@ -1579,7 +1691,7 @@
 
               if (sendMessageBtn) {
                   e.stopPropagation();
-                  const cardId = sendMessageBtn.dataset.cardId;
+                  const cardId = sendMessageBtn.closest('[data-card-id]').dataset.cardId; // Fix para pegar o ID certo
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
                   if (card) this.showSendMessageModal(card);
               } else if (cardMenuBtn) {
@@ -1599,7 +1711,7 @@
           
           this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanView());
           document.addEventListener('keydown', (e) => {
-              if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+              if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
                   e.preventDefault();
                   this.elements.globalSearch.focus();
               }
@@ -1631,4 +1743,3 @@
 
 </body>
 </html>
-
