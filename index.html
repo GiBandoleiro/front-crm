@@ -88,16 +88,16 @@
       }
        .dark .litepicker .container__months .month-item .day-item:not(.is-start-date):not(.is-end-date):hover {
          background-color: #334155 !important;
-      }
+       }
        .dark .litepicker .month-item-week-day {
          color: #94A3B8 !important;
-      }
+       }
        .dark .litepicker, .dark .litepicker .container__footer {
          background-color: #1E293B !important;
-      }
+       }
        .dark .litepicker .button-cancel {
          color: #F8FAFC !important;
-      }
+       }
       /* List View Specific Styles */
        .list-view-row:hover {
           @apply bg-hover;
@@ -175,11 +175,8 @@
       <!-- Header -->
       <header class="h-16 bg-panel border-b border-border flex-shrink-0 flex items-center justify-between px-6">
         <div class="flex items-center space-x-4">
+            <!-- MUDANÇA: Título da Visão (Pesquisa foi movida) -->
             <h2 id="view-title" class="text-xl font-semibold text-text">Kanban de Leads</h2>
-            <div class="relative">
-                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary"></i>
-                <input id="global-search" type="text" placeholder="Buscar leads, empresas... (Pressione /)" class="w-72 bg-base border border-border rounded-lg pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none transition-all">
-            </div>
         </div>
         <div class="flex items-center space-x-3">
             <!-- NOVO: Botão de Atualizar -->
@@ -202,10 +199,18 @@
         
         <!-- Kanban View (Now contains Board, List and Calendar) -->
         <div id="kanban-view" class="view hidden h-full flex flex-col">
+          <!-- MUDANÇA: Cabeçalho da visão agora inclui a pesquisa -->
           <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-2xl font-bold text-text">Kanban de Leads</h3>
-              <p class="text-sm text-secondary">Gerencie seus leads por etapas do funil.</p>
+            <div class="flex items-center space-x-4"> <!-- Wrapper para Título e Pesquisa -->
+              <div>
+                <h3 class="text-2xl font-bold text-text">Kanban de Leads</h3>
+                <p class="text-sm text-secondary">Gerencie seus leads por etapas do funil.</p>
+              </div>
+              <!-- MUDANÇA: Pesquisa movida para cá -->
+              <div class="relative">
+                  <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary"></i>
+                  <input id="global-search" type="text" placeholder="Buscar leads, empresas... (Pressione /)" class="w-72 bg-base border border-border rounded-lg pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none transition-all">
+              </div>
             </div>
             <div class="flex items-center space-x-3 relative">
                 <button id="main-view-toggle" class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover">
@@ -262,8 +267,13 @@
                   <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
                   <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
                 </div>
-                <div>
-                  <button id="calendar-today" class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
+                <!-- MUDANÇA: Adicionado seletor de data e botão 'Hoje' -->
+                <div class="flex items-center gap-2">
+                    <select id="calendar-data-source" class="h-9 bg-panel border border-border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
+                        <option value="createdAt">Data de Criação</option>
+                        <option value="nextContactDate">Próximo Contato</option>
+                    </select>
+                    <button id="calendar-today" class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
                 </div>
              </div>
              <div id="calendar-grid-header" class="grid grid-cols-7"></div>
@@ -295,7 +305,7 @@
     <!-- Modal Container -->
     <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300 flex"> <!-- FIX: Added 'flex' -->
         <div id="modal-box" class="bg-panel rounded-2xl shadow-xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300">
-             <!-- Modal content here -->
+            <!-- Modal content here -->
         </div>
     </div>
 
@@ -349,6 +359,7 @@
               prevBtn: document.getElementById('calendar-prev'),
               nextBtn: document.getElementById('calendar-next'),
               todayBtn: document.getElementById('calendar-today'),
+              calendarDataSource: document.getElementById('calendar-data-source'), // NOVO
           },
         },
         config: {
@@ -466,23 +477,25 @@
           console.log('Seeding initial state...');
           const today = dayjs();
           const cards = [
-                {id:"lead_1", listId:"novo", name:"João", sobrenome:"Silva", company:"Tech Solutions Ltda", email:"joao@tech.com", phone:"11987654321", origin:"Meta Ads", value:50000, priority:"alta", labels:["Quente","Urgente"], members:["AC"], createdAt:today.startOf('month').add(2, 'day').toISOString(), dueDate: today.endOf('month').toISOString()},
-                {id:"lead_2", listId:"novo", name:"Maria", sobrenome:"Oliveira", company:"Startup XYZ", email:"maria@startupxyz.com", phone:"21998765432", origin:"Google Ads", value:35000, priority:"media", labels:["Novo"], members:["BL"], createdAt:today.startOf('month').add(4, 'day').toISOString(), dueDate: null},
-                {id:"lead_3", listId:"em-contato", name:"Pedro", sobrenome:"Santos", company:"Indústria ABC", email:"pedro@industriaabc.com", phone:"31912345678", origin:"Indicação", value:120000, priority:"alta", labels:["Corporativo", "Grande Porte"], members:["CS"], createdAt:today.startOf('month').add(5, 'day').toISOString(), dueDate: null},
-                {id:"lead_4", listId:"em-contato", name:"Ana", sobrenome:"Paula", company:"Consultoria Beta", email:"ana@consultoria.com", phone:"41982349876", origin:"Orgânico", value:25000, priority:"baixa", labels:["Pequeno"], members:["AC"], createdAt:today.startOf('month').add(7, 'day').toISOString(), dueDate: null},
-                {id:"lead_5", listId:"negociacao", name:"Carlos", sobrenome:"Mendes", company:"E-commerce Plus", email:"carlos@ecommerceplus.com", phone:"81981234567", origin:"Meta Ads", value:80000, priority:"media", labels:["E-commerce", "Médio Porte"], members:["BL"], createdAt:today.startOf('month').add(10, 'day').toISOString(), dueDate: null},
-                {id:"lead_6", listId:"visita", name:"Fernando", sobrenome:"Lima", company:"", email:"fernando@escolamoderna.edu", phone:"47993216543", origin:"Indicação", value:45000, priority:"alta", labels:["Educação"], members:["CS"], createdAt:today.startOf('month').add(12, 'day').toISOString(), dueDate: null},
-                {id:"lead_7", listId:"proposta", name:"Roberto", sobrenome:"Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"27987651234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null},
-                {id:"lead_8", listId:"proposta", name:"Juliana", sobrenome:"Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"41918248614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null},
-                {id:"lead_9", listId:"ganhou", name:"Sandra", sobrenome:"Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"51998234512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null},
+                {id:"lead_1", listId:"novo", name:"João", sobrenome:"Silva", company:"Tech Solutions Ltda", email:"joao@tech.com", phone:"11987654321", origin:"Meta Ads", value:50000, priority:"alta", labels:["Quente","Urgente"], members:["AC"], createdAt:today.startOf('month').add(2, 'day').toISOString(), dueDate: today.endOf('month').toISOString(), nextContactDate: today.add(3, 'day').toISOString(), attributes: [{id: this.uid(), key: "Canal Preferido", value: "WhatsApp"}]},
+                {id:"lead_2", listId:"novo", name:"Maria", sobrenome:"Oliveira", company:"Startup XYZ", email:"maria@startupxyz.com", phone:"21998765432", origin:"Google Ads", value:35000, priority:"media", labels:["Novo"], members:["BL"], createdAt:today.startOf('month').add(4, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_3", listId:"em-contato", name:"Pedro", sobrenome:"Santos", company:"Indústria ABC", email:"pedro@industriaabc.com", phone:"31912345678", origin:"Indicação", value:120000, priority:"alta", labels:["Corporativo", "Grande Porte"], members:["CS"], createdAt:today.startOf('month').add(5, 'day').toISOString(), dueDate: null, nextContactDate: today.add(1, 'day').toISOString(), attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_4", listId:"em-contato", name:"Ana", sobrenome:"Paula", company:"Consultoria Beta", email:"ana@consultoria.com", phone:"41982349876", origin:"Orgânico", value:25000, priority:"baixa", labels:["Pequeno"], members:["AC"], createdAt:today.startOf('month').add(7, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_5", listId:"negociacao", name:"Carlos", sobrenome:"Mendes", company:"E-commerce Plus", email:"carlos@ecommerceplus.com", phone:"81981234567", origin:"Meta Ads", value:80000, priority:"media", labels:["E-commerce", "Médio Porte"], members:["BL"], createdAt:today.startOf('month').add(10, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_6", listId:"visita", name:"Fernando", sobrenome:"Lima", company:"", email:"fernando@escolamoderna.edu", phone:"47993216543", origin:"Indicação", value:45000, priority:"alta", labels:["Educação"], members:["CS"], createdAt:today.startOf('month').add(12, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_7", listId:"proposta", name:"Roberto", sobrenome:"Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"27987651234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_8", listId:"proposta", name:"Juliana", sobrenome:"Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"41918248614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
+                {id:"lead_9", listId:"ganhou", name:"Sandra", sobrenome:"Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"51998234512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
               ].map(c => ({...c, 
                 checklist: [{id:this.uid(),text:"Retornar contato",done:Math.random()>0.5}], 
                 timeline:[{t:"created",at:c.createdAt}],
                 notes: "",
-                attributes: [{id: this.uid(), key: "Canal Preferido", value: "WhatsApp"}],
                 cidade: "",
                 pais: "Brazil",
-                biografia: ""
+                biografia: "",
+                // Garante que 'attributes' e 'nextContactDate' existam
+                attributes: c.attributes || [{id: this.uid(), key: "Canal Preferido", value: ""}],
+                nextContactDate: c.nextContactDate || null
               }));
 
           this.state = {
@@ -548,6 +561,7 @@
           let currentRoute = this.config.routes.find(r => hash.startsWith(r.hash));
           let contactId = null;
 
+          // MUDANÇA: Lógica para pegar o ID do contato da URL
           if (currentRoute && currentRoute.hash === '#/contacts' && hash.includes('/')) {
             contactId = hash.split('/')[2];
           }
@@ -556,12 +570,14 @@
             const viewElement = document.getElementById(currentRoute.view);
             if (viewElement) {
               viewElement.classList.remove('hidden');
+              // MUDANÇA: Título dinâmico para página de contato
               this.elements.viewTitle.textContent = contactId ? 'Detalhe do Contato' : currentRoute.title;
 
               if(currentRoute.view === 'kanban-view') {
                 this.renderKanbanView(); // Renders board, list, or calendar based on state
                 this.renderFilterPopup();
               }
+              // MUDANÇA: Renderiza a página de contato se o ID existir
               if(currentRoute.view === 'contacts-view') this.renderContactDetail(contactId);
 
               document.querySelectorAll('#sidebar-nav a').forEach(a => {
@@ -606,10 +622,10 @@
               break;
             case 'assign':
                if (cardIndex > -1) {
-                if(!board.cards[cardIndex].members.includes(automation.payload.member)){
-                    board.cards[cardIndex].members.push(automation.payload.member);
-                    this.showToast(`${card.name} atribuído para ${automation.payload.member}`, 'info');
-                }
+                 if(!board.cards[cardIndex].members.includes(automation.payload.member)){
+                     board.cards[cardIndex].members.push(automation.payload.member);
+                     this.showToast(`${card.name} atribuído para ${automation.payload.member}`, 'info');
+                 }
                }
               break;
           }
@@ -771,7 +787,7 @@
                         </td>
                          <td class="px-6 py-4 text-secondary">${dayjs(card.createdAt).format('DD/MM/YYYY')}</td>
                         <td class="px-6 py-4 text-right">
-                           <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
+                          <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
                         </td>
                     </tr>
                 `;
@@ -792,9 +808,12 @@
                     <h5 class="font-semibold text-text mb-1">${card.name} ${card.sobrenome || ''}</h5>
                     <p class="text-sm text-secondary">${card.company || 'Sem empresa'}</p>
                 </div>
+                <!-- MUDANÇA: Botão "..." removido, botão de lixeira adicionado -->
                 <div class="flex-shrink-0 flex items-center">
-                    <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
-                    <button class="card-action-menu h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+                    <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}" title="Enviar Mensagem"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
+                    <button class="card-delete-btn h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-red-500" data-card-id="${card.id}" title="Excluir Lead">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    </button>
                 </div>
               </div>
 
@@ -811,6 +830,8 @@
               <div class="flex items-center justify-between text-sm text-secondary">
                   <div class="flex items-center gap-4">
                     ${card.dueDate ? `<div class="flex items-center"><i data-lucide="calendar" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.dueDate).format('DD MMM')}</span></div>` : ''}
+                    <!-- MUDANÇA: Exibe data do próximo contato se existir -->
+                    ${card.nextContactDate ? `<div class="flex items-center text-blue-400"><i data-lucide="calendar-check" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.nextContactDate).format('DD MMM')}</span></div>` : ''}
                     ${card.checklist.length > 0 ? `<div class="flex items-center ${checklistProgress === 100 ? 'text-green-400' : ''}"><i data-lucide="check-square" class="h-4 w-4 mr-1.5"></i><span>${card.checklist.filter(c=>c.done).length}/${card.checklist.length}</span></div>` : ''}
                   </div>
                   <div class="flex -space-x-2">
@@ -836,11 +857,19 @@
             const startDay = firstDayOfMonth.startOf('week');
             const board = this.state.boards[0];
             let currentDay = startDay;
+            
+            // MUDANÇA: Pega a fonte de dados (data de criação ou próximo contato)
+            const dataSource = this.elements.calendar.calendarDataSource.value || 'createdAt';
 
             for (let i = 0; i < 35; i++) {
                 const isCurrentMonth = currentDay.isSame(this.config.currentDate, 'month');
                 const isToday = currentDay.isSame(dayjs(), 'day');
-                const cardsOnDay = board.cards.filter(c => dayjs(c.createdAt).isSame(currentDay, 'day'));
+                
+                // MUDANÇA: Filtra os cartões baseado na fonte de dados selecionada
+                const cardsOnDay = board.cards.filter(c => {
+                    const dateToCompare = c[dataSource];
+                    return dateToCompare && dayjs(dateToCompare).isSame(currentDay, 'day');
+                });
                 
                 const dayCell = document.createElement('div');
                 dayCell.className = `p-2 overflow-hidden border-r border-b border-border relative ${isCurrentMonth ? 'bg-panel' : 'bg-base'} group transition-colors hover:bg-hover`;
@@ -850,7 +879,7 @@
                     <span class="text-sm font-semibold ${isToday ? 'bg-brand-blue text-white rounded-full h-7 w-7 flex items-center justify-center' : (isCurrentMonth ? 'text-text' : 'text-secondary/50')}">${currentDay.format('D')}</span>
                     <div class="cards-container mt-2 space-y-1.5 overflow-y-auto" style="max-height: 80px;">
                         ${cardsOnDay.map(card => `
-                            <div class="kanban-card p-1.5 text-xs rounded-md bg-slate-700 text-white truncate cursor-pointer hover:bg-slate-600" data-card-id="${card.id}">
+                            <div class="kanban-card p-1.5 text-xs rounded-md ${dataSource === 'nextContactDate' ? 'bg-blue-600' : 'bg-slate-700'} text-white truncate cursor-pointer hover:bg-slate-600" data-card-id="${card.id}">
                                 ${card.name}
                             </div>
                         `).join('')}
@@ -865,12 +894,32 @@
         renderContactDetail(contactId) {
             const viewEl = document.getElementById('contacts-view');
             if (!contactId) {
-                viewEl.innerHTML = `<div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Selecione um contato</h1></div>`;
+                // MUDANÇA: Página de 'Contatos' padrão se nenhum ID for selecionado
+                // (Isso é acionado se o usuário apenas clicar em '#/contacts')
+                const allContacts = this.state.contacts;
+                viewEl.innerHTML = `
+                    <div class="bg-panel p-8 rounded-2xl">
+                        <h1 class="text-2xl font-bold mb-6">Todos os Contatos (${allContacts.length})</h1>
+                        <div class="space-y-3">
+                            ${allContacts.map(contact => `
+                                <a href="#/contacts/${contact.id}" class="flex items-center p-3 bg-base rounded-lg hover:bg-hover">
+                                    <div class="h-10 w-10 rounded-full bg-brand-blue text-white flex items-center justify-center text-xl font-bold mr-4">
+                                        ${contact.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-text">${contact.name} ${contact.sobrenome || ''}</p>
+                                        <p class="text-sm text-secondary">${contact.company || 'Sem empresa'}</p>
+                                    </div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>`;
                 return;
             }
+            
             const contact = this.state.contacts.find(c => c.id === contactId);
             if(!contact) {
-                viewEl.innerHTML = `<div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Contato não encontrado</h1></div>`;
+                viewEl.innerHTML = `<div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Contato não encontrado</h1><p class="text-secondary">O lead pode ter sido excluído. <a href="#/kanban" class="text-brand-blue">Voltar ao Kanban</a></p></div>`;
                 return;
             }
 
@@ -888,8 +937,8 @@
                                     ${contact.name.charAt(0)}
                                 </div>
                                 <h1 class="text-2xl font-bold text-text">${contact.name} ${contact.sobrenome || ''}</h1>
-                                <p class="text-sm text-secondary">Criado ${timeSinceCreation} • Última atividade ${lastActivity}</p>
-                                <div class="mt-3 flex items-center gap-2 flex-wrap">
+                                <p class="text-sm text-secondary text-center">Criado ${timeSinceCreation} • Última atividade ${lastActivity}</p>
+                                <div class="mt-3 flex items-center gap-2 flex-wrap justify-center">
                                     ${contact.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
                                 </div>
                             </div>
@@ -920,15 +969,18 @@
                                     <label class="text-sm font-medium text-secondary">Empresa</label>
                                     <input name="company" value="${contact.company || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
                                 </div>
-                                <button type="submit" class="w-full h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Atualizar contato</button>
+                                <!-- MUDANÇA: Texto do botão -->
+                                <button type="submit" class="w-full h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar Alterações</button>
                             </form>
                         </div>
                     </div>
 
                     <!-- Coluna da Direita (Abas) -->
                     <div class="md:col-span-2 bg-panel p-6 rounded-2xl">
+                        <!-- MUDANÇA: Adicionada aba "Próximo Contato" -->
                         <div class="flex items-center border-b border-border">
                             <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-brand-blue text-text" data-tab="notas">Notas</button>
+                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="data">Próximo Contato</button>
                             <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="atributos">Atributos</button>
                             <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="historico">Histórico</button>
                         </div>
@@ -942,14 +994,23 @@
                                     <button id="save-note-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar nota</button>
                                 </div>
                             </div>
+                            
+                            <!-- MUDANÇA: Nova Aba de Próximo Contato -->
+                            <div id="tab-data" class="contact-tab-panel hidden">
+                                <h4 class="text-sm font-semibold text-secondary mb-2">Agendar Próximo Contato</h4>
+                                <input id="next-contact-datepicker" type="text" placeholder="Selecione uma data..." class="w-full max-w-sm bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                <div class="flex justify-start mt-2">
+                                    <button id="save-next-contact-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar Data</button>
+                                </div>
+                            </div>
 
                             <!-- Aba de Atributos -->
                             <div id="tab-atributos" class="contact-tab-panel hidden">
                                 <div id="attributes-list" class="space-y-3">
                                     ${contact.attributes.map(attr => `
                                         <div class="grid grid-cols-2 gap-3" data-attr-id="${attr.id}">
-                                            <input value="${attr.key}" data-field="key" placeholder="Nome do Atributo" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                            <input value="${attr.value}" data-field="value" placeholder="Valor" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                            <input value="${attr.key}" data-field="key" placeholder="Nome do Atributo (Ex: Canal Preferido)" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                            <input value="${attr.value}" data-field="value" placeholder="Valor (Ex: WhatsApp)" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
                                         </div>
                                     `).join('')}
                                 </div>
@@ -962,7 +1023,7 @@
                                 ${[...contact.timeline].reverse().map(entry => `
                                     <div class="flex gap-4">
                                         <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
-                                            <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : 'pencil')}" class="h-5 w-5 text-white"></i>
+                                            <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : (entry.t === 'rescheduled' ? 'calendar-check' : 'pencil'))}" class="h-5 w-5 text-white"></i>
                                         </div>
                                         <div>
                                             <p class="font-medium text-text">${this.getTimelineEntryText(entry, board.lists)}</p>
@@ -984,6 +1045,7 @@
         
         attachContactDetailListeners(contactId, activeTab = 'notas') { // Added activeTab parameter
             const contact = this.state.contacts.find(c => c.id === contactId);
+            if (!contact) return; // Sai se o contato não for encontrado
             
             // Function to set the active tab visually and internally
             const setActiveTab = (tabId) => {
@@ -1008,29 +1070,75 @@
             setActiveTab(activeTab);
 
             // Save Details Form
-            document.getElementById('contact-details-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const updates = Object.fromEntries(formData.entries());
-                this.updateCard(contactId, updates); // This will trigger apiPutLeads
-                this.showToast('Contato atualizado!', 'success');
-                // Re-render is handled by apiGetLeads
-            });
+            const detailsForm = document.getElementById('contact-details-form');
+            if(detailsForm) {
+                detailsForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const updates = Object.fromEntries(formData.entries());
+                    updates.phone = (updates.phone || '').replace(/\D/g,''); // Limpa telefone
+                    this.updateCard(contactId, updates); // This will trigger apiPutLeads
+                    this.showToast('Contato atualizado!', 'success');
+                    // Re-render is handled by apiGetLeads
+                });
+            }
 
             // Save Note
-            document.getElementById('save-note-btn').addEventListener('click', () => {
-                const note = document.getElementById('contact-note-textarea').value;
-                this.updateCard(contactId, { notes: note }); // This will trigger apiPutLeads
-                this.showToast('Nota salva!', 'success');
-            });
+            const saveNoteBtn = document.getElementById('save-note-btn');
+            if(saveNoteBtn) {
+                saveNoteBtn.addEventListener('click', () => {
+                    const note = document.getElementById('contact-note-textarea').value;
+                    this.updateCard(contactId, { notes: note }); // This will trigger apiPutLeads
+                    this.showToast('Nota salva!', 'success');
+                });
+            }
+
+            // MUDANÇA: Salvar "Próximo Contato"
+            const saveNextContactBtn = document.getElementById('save-next-contact-btn');
+            if (saveNextContactBtn) {
+                saveNextContactBtn.addEventListener('click', () => {
+                    const newDate = this.config.activeLitepicker ? this.config.activeLitepicker.getDate() : null;
+                    if (newDate) {
+                        this.updateCard(contactId, { nextContactDate: newDate.dateInstance.toISOString() }); // This will trigger apiPutLeads
+                        this.showToast('Próximo contato agendado!', 'success');
+                    } else {
+                        // Se limpou a data
+                        this.updateCard(contactId, { nextContactDate: null });
+                        this.showToast('Agendamento removido.', 'info');
+                    }
+                });
+            }
+
+            // MUDANÇA: Inicializar Litepicker para "Próximo Contato"
+            if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
+            const dateInput = document.getElementById('next-contact-datepicker');
+            if(dateInput) { // Apenas inicializa se o campo existir
+                this.config.activeLitepicker = new Litepicker({
+                    element: dateInput,
+                    singleMode: true,
+                    autoApply: true,
+                    format: 'DD/MM/YYYY',
+                    lang: 'pt-br',
+                    buttonText: { apply: 'Aplicar', cancel: 'Cancelar' },
+                    allowRepick: true, // Permite clicar de novo para limpar
+                });
+                // Set the existing date if it exists
+                if (contact.nextContactDate) {
+                    this.config.activeLitepicker.setDate(contact.nextContactDate);
+                }
+            }
+
 
             // Add Attribute
-            document.getElementById('add-attribute-btn').addEventListener('click', () => {
-                const newAttr = { id: this.uid(), key: '', value: '' };
-                contact.attributes.push(newAttr);
-                this.updateCard(contactId, { attributes: contact.attributes }); // This will trigger apiPutLeads
-                // Re-render will happen via apiGetLeads
-            });
+            const addAttrBtn = document.getElementById('add-attribute-btn');
+            if(addAttrBtn) {
+                addAttrBtn.addEventListener('click', () => {
+                    const newAttr = { id: this.uid(), key: '', value: '' };
+                    contact.attributes.push(newAttr);
+                    this.updateCard(contactId, { attributes: contact.attributes }); // This will trigger apiPutLeads
+                    // Re-render will happen via apiGetLeads
+                });
+            }
 
             // Update Attribute
             document.querySelectorAll('.attr-input').forEach(input => {
@@ -1052,8 +1160,9 @@
         getTimelineEntryText(entry, lists) {
             switch(entry.t) {
                 case 'created': return 'Lead criado';
-                case 'moved': return `Movido de "${lists.find(l=>l.id===entry.from)?.name}" para "${lists.find(l=>l.id===entry.to)?.name}"`;
+                case 'moved': return `Movido de "${lists.find(l=>l.id===entry.from)?.name || 'N/A'}" para "${lists.find(l=>l.id===entry.to)?.name || 'N/A'}"`;
                 case 'edited': return `Campo "${entry.field}" atualizado`;
+                case 'rescheduled': return `Próximo contato agendado para ${dayjs(entry.to).format('DD/MM/YYYY')}`;
                 default: return 'Atividade registrada';
             }
         },
@@ -1118,9 +1227,7 @@
                          </div>
                        </div>
                 </div>
-                 <div class="p-6 border-t border-border bg-base flex gap-2">
-                   <button id="delete-lead-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">Excluir Lead</button>
-                 </div>
+                 <!-- MUDANÇA: Botão de excluir removido do drawer -->
             `;
             lucide.createIcons();
         },
@@ -1136,106 +1243,106 @@
 
         // --- UI INTERACTION & SORTABLE ---
         openDrawer(cardId) {
-            const card = this.state.boards[0].cards.find(c => c.id === cardId);
-            if(!card) return;
+          const card = this.state.boards[0].cards.find(c => c.id === cardId);
+          if(!card) return;
 
-            this.renderCardDrawer(card);
+          this.renderCardDrawer(card);
 
-            this.elements.cardDrawer.dataset.cardId = cardId;
-            this.elements.cardDrawer.classList.remove('translate-x-full');
-            this.elements.drawerOverlay.classList.remove('hidden');
-            this.elements.drawerOverlay.style.opacity = 1;
+          this.elements.cardDrawer.dataset.cardId = cardId;
+          this.elements.cardDrawer.classList.remove('translate-x-full');
+          this.elements.drawerOverlay.classList.remove('hidden');
+          this.elements.drawerOverlay.style.opacity = 1;
         },
         closeDrawer() {
-            this.elements.cardDrawer.classList.add('translate-x-full');
-            this.elements.drawerOverlay.style.opacity = 0;
-            setTimeout(() => this.elements.drawerOverlay.classList.add('hidden'), 300);
-            this.elements.cardDrawer.dataset.cardId = '';
+          this.elements.cardDrawer.classList.add('translate-x-full');
+          this.elements.drawerOverlay.style.opacity = 0;
+          setTimeout(() => this.elements.drawerOverlay.classList.add('hidden'), 300);
+          this.elements.cardDrawer.dataset.cardId = '';
         },
         
         makeFieldEditable(fieldElement) {
-            const cardId = this.elements.cardDrawer.dataset.cardId;
-            const key = fieldElement.dataset.key;
-            const type = fieldElement.dataset.type;
-            
-            const card = this.state.boards[0].cards.find(c => c.id === cardId);
-            if (!card) return;
+          const cardId = this.elements.cardDrawer.dataset.cardId;
+          const key = fieldElement.dataset.key;
+          const type = fieldElement.dataset.type;
+          
+          const card = this.state.boards[0].cards.find(c => c.id === cardId);
+          if (!card) return;
 
-            const currentValue = card[key];
-            const p = fieldElement.querySelector('p');
-            
-            const input = document.createElement('input');
-            input.type = type;
-            input.value = currentValue || '';
-            input.className = "w-full bg-base border border-border rounded-lg px-3 py-2 text-lg focus:ring-2 focus:ring-brand-blue focus:outline-none";
+          const currentValue = card[key];
+          const p = fieldElement.querySelector('p');
+          
+          const input = document.createElement('input');
+          input.type = type;
+          input.value = currentValue || '';
+          input.className = "w-full bg-base border border-border rounded-lg px-3 py-2 text-lg focus:ring-2 focus:ring-brand-blue focus:outline-none";
 
-            p.replaceWith(input);
-            input.focus();
+          p.replaceWith(input);
+          input.focus();
 
-            const save = () => {
-                let newValue = type === 'number' ? parseFloat(input.value) || 0 : input.value;
-                if (type === 'tel') {
-                    newValue = newValue.replace(/\D/g,''); // Remove non-digits for phone
-                }
+          const save = () => {
+              let newValue = type === 'number' ? parseFloat(input.value) || 0 : input.value;
+              if (type === 'tel') {
+                  newValue = newValue.replace(/\D/g,''); // Remove non-digits for phone
+              }
 
-                this.updateCard(cardId, { [key]: newValue }); // This will trigger apiPutLeads
-                
-                const newP = document.createElement('p');
-                newP.className = "text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md";
-                newP.textContent = newValue || 'Não definido';
-                input.replaceWith(newP);
-                this.showToast('Informação salva!', 'success');
+              this.updateCard(cardId, { [key]: newValue }); // This will trigger apiPutLeads
+              
+              const newP = document.createElement('p');
+              newP.className = "text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md";
+              newP.textContent = newValue || 'Não definido';
+              input.replaceWith(newP);
+              this.showToast('Informação salva!', 'success');
                                       
-                // Re-render is handled by apiGetLeads
-            };
+              // Re-render is handled by apiGetLeads
+          };
 
-            input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => {
-                if(e.key === 'Enter') input.blur();
-                if(e.key === 'Escape') {
-                    input.value = currentValue;
-                    input.blur();
-                }
-            });
+          input.addEventListener('blur', save);
+          input.addEventListener('keydown', (e) => {
+              if(e.key === 'Enter') input.blur();
+              if(e.key === 'Escape') {
+                  input.value = currentValue;
+                  input.blur();
+              }
+          });
         },
 
         initKanbanSortable() {
-            new Sortable(this.elements.kanbanBoard, {
-                animation: 150, ghostClass: 'sortable-ghost', handle: '.handle',
-                onEnd: (evt) => {
-                    const board = this.state.boards[0];
-                    const [movedList] = board.lists.splice(evt.oldIndex, 1);
-                    board.lists.splice(evt.newIndex, 0, movedList);
-                    board.lists.forEach((list, index) => list.order = index);
-                    // ATUALIZADO: Chamar API PUT
-                    this.apiPutLeads('Movimentação de coluna');
-                },
-            });
+          new Sortable(this.elements.kanbanBoard, {
+              animation: 150, ghostClass: 'sortable-ghost', handle: '.handle',
+              onEnd: (evt) => {
+                  const board = this.state.boards[0];
+                  const [movedList] = board.lists.splice(evt.oldIndex, 1);
+                  board.lists.splice(evt.newIndex, 0, movedList);
+                  board.lists.forEach((list, index) => list.order = index);
+                  // ATUALIZADO: Chamar API PUT
+                  this.apiPutLeads('Movimentação de coluna');
+              },
+          });
 
-            document.querySelectorAll('.list-cards').forEach(listEl => {
-                new Sortable(listEl, {
-                    group: 'cards', animation: 150, ghostClass: 'sortable-ghost',
-                    onEnd: (evt) => {
-                        const cardId = evt.item.dataset.cardId;
-                        const fromListId = evt.from.closest('.kanban-list').dataset.listId;
-                        const toListId = evt.to.closest('.kanban-list').dataset.listId;
-                        
-                        const board = this.state.boards[0];
-                        const card = board.cards.find(c => c.id === cardId);
-                        
-                        if (card && fromListId !== toListId) {
-                            card.listId = toListId;
-                            card.timeline.push({ t: "moved", from: fromListId, to: toListId, at: new Date().toISOString() });
-                            
-                            const toList = board.lists.find(l => l.id === toListId);
-                            this.runAutomations('move_to', { card, toList });
-       
-                            // ATUALIZADO: Chamar API PUT (runAutomations já chama, mas o movimento em si também deve)
-                            this.apiPutLeads(`Movimentação de lead: ${card.name}`);
-                        }
-                    },
-                });
-            });
+          document.querySelectorAll('.list-cards').forEach(listEl => {
+              new Sortable(listEl, {
+                  group: 'cards', animation: 150, ghostClass: 'sortable-ghost',
+                  onEnd: (evt) => {
+                      const cardId = evt.item.dataset.cardId;
+                      const fromListId = evt.from.closest('.kanban-list').dataset.listId;
+                      const toListId = evt.to.closest('.kanban-list').dataset.listId;
+                      
+                      const board = this.state.boards[0];
+                      const card = board.cards.find(c => c.id === cardId);
+                      
+                      if (card && fromListId !== toListId) {
+                          card.listId = toListId;
+                          card.timeline.push({ t: "moved", from: fromListId, to: toListId, at: new Date().toISOString() });
+                          
+                          const toList = board.lists.find(l => l.id === toListId);
+                          this.runAutomations('move_to', { card, toList });
+      
+                          // ATUALIZADO: Chamar API PUT (runAutomations já chama, mas o movimento em si também deve)
+                          this.apiPutLeads(`Movimentação de lead: ${card.name}`);
+                      }
+                  },
+              });
+          });
         },
         
         initCalendarSortable() {
@@ -1246,14 +1353,20 @@
                     onEnd: (evt) => {
                         const cardId = evt.item.dataset.cardId;
                         const newDate = evt.to.closest('[data-date]').dataset.date;
+                        const dataSource = this.elements.calendar.calendarDataSource.value || 'createdAt';
                         
                         const board = this.state.boards[0];
                         const cardIndex = board.cards.findIndex(c => c.id === cardId);
 
                         if(cardIndex !== -1 && newDate) {
-                            const oldDate = board.cards[cardIndex].createdAt;
-                            board.cards[cardIndex].createdAt = dayjs(newDate).toISOString();
-                            board.cards[cardIndex].timeline.push({ t: "rescheduled", from: oldDate, to: newDate, at: new Date().toISOString() });
+                            const oldDate = board.cards[cardIndex][dataSource];
+                            board.cards[cardIndex][dataSource] = dayjs(newDate).toISOString(); // Salva na data correta
+                            
+                            // Adiciona na timeline
+                            const eventType = dataSource === 'nextContactDate' ? 'rescheduled' : 'edited';
+                            const fieldName = dataSource === 'nextContactDate' ? 'Próximo Contato' : 'Data de Criação';
+
+                            board.cards[cardIndex].timeline.push({ t: eventType, from: oldDate, to: newDate, at: new Date().toISOString(), field: fieldName });
                             
                             // ATUALIZADO: Chamar API PUT
                             this.apiPutLeads(`Reagendamento de lead: ${board.cards[cardIndex].name}`);
@@ -1322,6 +1435,8 @@
         initFilterDatepicker() {
             if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
             const dateInput = document.getElementById('filter-date-range'); // Define here
+            if(!dateInput) return; // Sai se o input não existir (ex: em outra página)
+
             this.config.activeLitepicker = new Litepicker({
                 element: dateInput,
                 singleMode: false,
@@ -1451,10 +1566,10 @@
                         const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
                         const icon = log.type === 'error' ? 'alert-circle' : (log.type === 'success' ? 'check-circle' : 'arrow-right-circle');
                         return `<div class="flex items-center gap-2 ${color}">
-                                <i data-lucide="${icon}" class="h-3 w-3 flex-shrink-0"></i>
-                                <span class="text-xs mr-1">[${time}]</span>
-                                <span class="text-sm">${log.message}</span>
-                            </div>`;
+                                    <i data-lucide="${icon}" class="h-3 w-3 flex-shrink-0"></i>
+                                    <span class="text-xs mr-1">[${time}]</span>
+                                    <span class="text-sm">${log.message}</span>
+                                </div>`;
                     }).join('')
                     : '<p class="text-secondary">Nenhum log registrado.</p>';
                 modalArea.innerHTML = logsHtml;
@@ -1462,50 +1577,41 @@
             }
         },
         
-        showNewLeadModal(listId = 'novo') {
-            const content = `
-                <form id="new-lead-form" class="space-y-4">
-                    <div><label class="text-sm font-medium text-secondary">Nome do Lead</label><input name="name" required class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
-                    <div><label class="text-sm font-medium text-secondary">Empresa (Opcional)</label><input name="company" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
-                    <div><label class="text-sm font-medium text-secondary">Telefone</label><input name="phone" type="tel" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></div>
-                </form>
-            `;
-            this.showModal({
-                title: 'Criar Novo Lead', content, confirmText: 'Criar Lead', confirmClass: 'bg-brand-blue hover:bg-blue-700',
-                onConfirm: () => {
-                    const form = document.getElementById('new-lead-form');
-                    const formData = new FormData(form);
-                    const newCard = { 
-                        id: this.uid(), 
-                        listId, 
-                        name: formData.get('name') || 'Novo Lead', 
-                        sobrenome: '',
-                        company: formData.get('company') || '', 
-                        value: 0, 
-                        email: '', 
-                        phone: (formData.get('phone') || '').replace(/\D/g,''), 
-                        origin: 'Manual', 
-                        priority: 'media', 
-                        labels: [], 
-                        members: ['AC'], 
-                        createdAt: new Date().toISOString(), 
-                        dueDate: null, 
-                        checklist: [], 
-                        timeline: [{ t: "created", at: new Date().toISOString() }],
-                        notes: "",
-                        attributes: [],
-                        cidade: "",
-                        pais: "Brazil",
-                        biografia: ""
-                    };
-                    this.state.boards[0].cards.push(newCard);
-                    this.state.contacts.push({...newCard});
-                    
-                    // ATUALIZADO: Chamar API PUT
-                    this.apiPutLeads('Criação de novo lead');
-                    this.showToast('Lead criado com sucesso!', 'success');
-                }
-            })
+        // MUDANÇA: Função agora cria o lead e redireciona
+        createNewLeadAndRedirect(listId = 'novo') {
+            const newCard = { 
+                id: this.uid(), 
+                listId, 
+                name: 'Novo Lead', 
+                sobrenome: '',
+                company: '', 
+                value: 0, 
+                email: '', 
+                phone: '', 
+                origin: 'Manual', 
+                priority: 'media', 
+                labels: [], 
+                members: ['AC'], 
+                createdAt: new Date().toISOString(), 
+                dueDate: null, 
+                nextContactDate: null, // NOVO
+                checklist: [], 
+                timeline: [{ t: "created", at: new Date().toISOString() }],
+                notes: "",
+                attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}], // NOVO
+                cidade: "",
+                pais: "Brazil",
+                biografia: ""
+            };
+            this.state.boards[0].cards.push(newCard);
+            this.state.contacts.push({...newCard});
+            
+            // ATUALIZADO: Chamar API PUT
+            this.apiPutLeads('Criação de novo lead');
+            this.showToast('Novo lead criado. Preencha os detalhes.', 'success');
+            
+            // MUDANÇA: Redireciona para a página de detalhes
+            window.location.hash = `#/contacts/${newCard.id}`;
         },
 
         showNewListModal() {
@@ -1527,7 +1633,23 @@
             });
         },
         
+        // MUDANÇA: Adicionada lógica de "Canal Preferido"
         showSendMessageModal(card) {
+            const preferredChannelAttr = card.attributes.find(a => a.key === 'Canal Preferido');
+            const preferredChannel = preferredChannelAttr ? preferredChannelAttr.value : null;
+
+            if (preferredChannel === 'WhatsApp' && card.phone) {
+                window.open(`https://wa.me/${card.phone || ''}`, '_blank');
+                this.showToast(`Abrindo WhatsApp para ${card.name}`, 'info');
+                return; // Pula o modal
+            }
+            if (preferredChannel === 'Instagram') {
+                window.open(`https://ig.me/m/USUARIO_INSTA_MOCK`, '_blank'); // Link mock
+                this.showToast(`Abrindo Instagram para ${card.name}`, 'info');
+                return; // Pula o modal
+            }
+            
+            // Lógica original do modal
             const content = `
                 <p class="text-secondary mb-4">Para qual canal você deseja enviar uma mensagem para ${card.name}?</p>
                 <div class="space-y-3">
@@ -1535,7 +1657,7 @@
                         <i data-lucide="message-circle" class="h-5 w-5 text-green-500"></i>
                         <span>WhatsApp</span>
                     </a>
-                    <a href="https://ig.me/m/..." target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
+                    <a href="https://ig.me/m/USUARIO_INSTA_MOCK" target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
                         <i data-lucide="instagram" class="h-5 w-5 text-pink-500"></i>
                         <span>Instagram DM</span>
                     </a>
@@ -1553,7 +1675,8 @@
         attachEventListeners() {
           this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
           this.elements.drawerOverlay.addEventListener('click', () => this.closeDrawer());
-          this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.showNewLeadModal());
+          // MUDANÇA: Chama a nova função de criação/redirecionamento
+          this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.createNewLeadAndRedirect());
           this.elements.refreshDataBtn.addEventListener('click', () => this.apiGetLeads('Atualização manual')); // NOVO
           this.elements.showLogsBtn.addEventListener('click', () => this.showLogsModal()); // NOVO
           
@@ -1569,10 +1692,10 @@
                  this.config.previousMainView = this.state.viewState.activeMainView;
                  this.apiPutLeads('Troca de visão (kanban/lista)'); // Salva a troca de visão
              }
-          });
+           });
 
-          // Calendar View Toggle
-          this.elements.calendarViewToggle.addEventListener('click', () => {
+           // Calendar View Toggle
+           this.elements.calendarViewToggle.addEventListener('click', () => {
              const currentView = this.state.viewState.activeMainView;
              if (currentView === 'calendar') {
                  // Return to previous main view (board or list)
@@ -1583,7 +1706,7 @@
                  this.state.viewState.activeMainView = 'calendar';
              }
              this.apiPutLeads('Troca de visão (calendário)'); // Salva a troca de visão
-          });
+           });
           
           this.elements.filterBtn.addEventListener('click', (e) => {
               e.stopPropagation();
@@ -1666,46 +1789,45 @@
                   this.updateCard(cardId, { members: newMembers }); // Dispara API
               }
 
-              if (e.target.closest('#delete-lead-btn')) {
-                  const cardId = this.elements.cardDrawer.dataset.cardId;
-                  this.showModal({
-                      title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
-                      confirmText: 'Excluir',
-                      onConfirm: () => {
-                          this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
-                          this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
-                          // ATUALIZADO: Chamar API PUT
-                          this.apiPutLeads('Exclusão de lead');
-                          this.closeDrawer();
-                          this.showToast('Lead excluído.', 'info');
-                      }
-                  });
-              }
+              // MUDANÇA: Botão de delete foi movido do drawer para o card
           });
 
           this.elements.viewsContainer.addEventListener('click', (e) => {
               const cardElement = e.target.closest('.kanban-card, .list-view-row'); // Added list-view-row
               const addLeadBtn = e.target.closest('.add-lead-in-list');
-              const cardMenuBtn = e.target.closest('.card-action-menu');
               const sendMessageBtn = e.target.closest('.card-send-message');
+              const deleteBtn = e.target.closest('.card-delete-btn'); // NOVO
 
               if (sendMessageBtn) {
                   e.stopPropagation();
                   const cardId = sendMessageBtn.closest('[data-card-id]').dataset.cardId; // Fix para pegar o ID certo
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
                   if (card) this.showSendMessageModal(card);
-              } else if (cardMenuBtn) {
+              } else if (deleteBtn) { // NOVO
                   e.stopPropagation();
-                  this.openDrawer(cardMenuBtn.closest('.kanban-card').dataset.cardId);
+                  const cardId = deleteBtn.dataset.cardId;
+                  this.showModal({
+                      title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
+                      confirmText: 'Excluir',
+                      confirmClass: 'bg-red-600 hover:bg-red-700',
+                      onConfirm: () => {
+                          this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
+                          this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
+                          this.apiPutLeads('Exclusão de lead');
+                          this.showToast('Lead excluído.', 'info');
+                      }
+                  });
               } else if (cardElement) {
                   if(cardElement.closest('#calendar-grid')){
-                     this.openDrawer(cardElement.dataset.cardId);
+                       // MUDANÇA: Abre a página de detalhes em vez do drawer
+                       window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
                   } else {
-                     // Navigate to contact detail from Kanban card OR List view row
-                     window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
+                       // Navigate to contact detail from Kanban card OR List view row
+                       window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
                   }
               } else if (addLeadBtn) {
-                  this.showNewLeadModal(addLeadBtn.dataset.listId);
+                  // MUDANÇA: Chama a nova função de criação/redirecionamento
+                  this.createNewLeadAndRedirect(addLeadBtn.dataset.listId);
               }
           });
           
@@ -1719,6 +1841,11 @@
                   this.closeDrawer();
                   this.elements.filterPopup.classList.add('hidden');
               }
+          });
+
+          // MUDANÇA: Listener para o seletor de data do calendário
+          this.elements.calendar.calendarDataSource.addEventListener('change', () => {
+              this.renderCalendar(); // Apenas re-renderiza o calendário
           });
 
           this.elements.calendar.prevBtn.addEventListener('click', () => {
