@@ -23,14 +23,14 @@
 
   <!-- SortableJS for Drag & Drop (fixed version) -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  
+
   <!-- Day.js for Date Manipulation -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isoWeek.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isBetween.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/pt-br.js"></script>
-  
+
   <!-- Custom Styles and Tailwind Config -->
   <style type="text/tailwindcss">
     @layer base {
@@ -100,11 +100,11 @@
        }
       /* List View Specific Styles */
        .list-view-row:hover {
-          @apply bg-hover;
+         @apply bg-hover;
        }
       /* Ensure empty list card area is droppable */
        .list-cards {
-          @apply min-h-[80px]; /* Added minimum height */
+         @apply min-h-[80px]; /* Added minimum height */
        }
        /* Log Modal Style */
        #logs-content-area {
@@ -150,8 +150,8 @@
       <nav id="sidebar-nav" class="flex-1 p-4 space-y-1">
         <!-- Navigation items will be injected here by JS -->
       </nav>
-      
-      <!-- NOVO: Botão de Logs -->
+
+      <!-- Botão de Logs -->
       <div class="p-4 border-t border-border">
         <button id="show-logs-btn" class="w-full flex items-center justify-start px-3 py-2 rounded-lg text-secondary hover:bg-hover hover:text-text font-medium transition-colors">
             <i data-lucide="terminal" class="h-5 w-5 mr-3"></i>
@@ -172,47 +172,36 @@
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Header -->
-      <header class="h-16 bg-panel border-b border-border flex-shrink-0 flex items-center justify-between px-6">
-        <div class="flex items-center space-x-4">
-            <!-- MUDANÇA: Título da Visão (Pesquisa foi movida) -->
-            <h2 id="view-title" class="text-xl font-semibold text-text">Kanban de Leads</h2>
-        </div>
-        <div class="flex items-center space-x-3">
-            <!-- NOVO: Botão de Atualizar -->
-            <button id="refresh-data-btn" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Atualizar dados">
-                <i data-lucide="refresh-cw" class="h-5 w-5"></i>
-            </button>
-            <button id="theme-toggle" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Alternar tema">
-                <i data-lucide="sun" class="h-5 w-5 block dark:hidden"></i>
-                <i data-lucide="moon" class="h-5 w-5 hidden dark:block"></i>
-            </button>
-            <button id="add-new-lead-header" class="h-9 px-4 flex items-center justify-center rounded-lg bg-brand-blue text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
-                <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
-                Novo Lead
-            </button>
-        </div>
-      </header>
+      <!-- REMOVED HEADER BLOCK -->
 
       <!-- Views Container -->
       <main id="views-container" class="flex-1 overflow-auto p-6">
-        
+
         <!-- Kanban View (Now contains Board, List and Calendar) -->
         <div id="kanban-view" class="view hidden h-full flex flex-col">
-          <!-- MUDANÇA: Cabeçalho da visão agora inclui a pesquisa -->
+          <!-- MUDANÇA: Cabeçalho da visão agora inclui a pesquisa e os botões do header anterior -->
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-4"> <!-- Wrapper para Título e Pesquisa -->
               <div>
-                <h3 class="text-2xl font-bold text-text">Kanban de Leads</h3>
+                <!-- Título da Visão agora aqui -->
+                <h2 id="view-title" class="text-2xl font-bold text-text mb-1">Kanban de Leads</h2>
                 <p class="text-sm text-secondary">Gerencie seus leads por etapas do funil.</p>
               </div>
-              <!-- MUDANÇA: Pesquisa movida para cá -->
+              <!-- Pesquisa -->
               <div class="relative">
                   <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary"></i>
                   <input id="global-search" type="text" placeholder="Buscar leads, empresas... (Pressione /)" class="w-72 bg-base border border-border rounded-lg pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none transition-all">
               </div>
             </div>
+            <!-- Botões movidos para cá -->
             <div class="flex items-center space-x-3 relative">
+                 <button id="refresh-data-btn" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Atualizar dados">
+                    <i data-lucide="refresh-cw" class="h-5 w-5"></i>
+                 </button>
+                 <button id="theme-toggle" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Alternar tema">
+                     <i data-lucide="sun" class="h-5 w-5 block dark:hidden"></i>
+                     <i data-lucide="moon" class="h-5 w-5 hidden dark:block"></i>
+                 </button>
                 <button id="main-view-toggle" class="h-9 px-4 flex items-center justify-center rounded-lg bg-panel border border-border text-sm font-semibold hover:bg-hover">
                     <i data-lucide="list" class="h-4 w-4 mr-2"></i>Visão: Lista
                 </button>
@@ -224,12 +213,16 @@
                     Filtros
                     <span id="filter-indicator" class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand-blue hidden"></span>
                 </button>
+                 <button id="add-new-lead-header" class="h-9 px-4 flex items-center justify-center rounded-lg bg-brand-blue text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+                     <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+                     Novo Lead
+                 </button>
                 <div id="filter-popup" class="absolute top-full right-0 mt-2 w-72 bg-panel border border-border rounded-2xl shadow-xl p-4 z-10 hidden">
                     <!-- Filter content will be injected here -->
                 </div>
             </div>
           </div>
-          
+
           <!-- Kanban Board Wrapper -->
           <!-- ATUALIZADO: items-stretch faz as colunas esticarem -->
           <div id="kanban-board-wrapper" class="flex-1 overflow-hidden -mx-6">
@@ -262,19 +255,20 @@
           <!-- Calendar Wrapper (hidden by default) -->
           <div id="calendar-wrapper" class="hidden h-full flex flex-col flex-1">
              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                  <button id="calendar-prev" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
-                  <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
-                  <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
-                </div>
-                <!-- MUDANÇA: Adicionado seletor de data e botão 'Hoje' -->
-                <div class="flex items-center gap-2">
-                    <select id="calendar-data-source" class="h-9 bg-panel border border-border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
-                        <option value="createdAt">Data de Criação</option>
-                        <option value="nextContactDate">Próximo Contato</option>
-                    </select>
-                    <button id="calendar-today" class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
-                </div>
+               <div class="flex items-center gap-2">
+                 <button id="calendar-prev" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
+                 <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
+                 <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
+               </div>
+               <!-- MUDANÇA: Adicionado seletor de data e botão 'Hoje' -->
+               <div class="flex items-center gap-2">
+                   <!-- MUDANÇA: Default para Próximo Contato -->
+                   <select id="calendar-data-source" class="h-9 bg-panel border border-border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
+                       <option value="createdAt">Data de Criação</option>
+                       <option value="nextContactDate" selected>Próximo Contato</option>
+                   </select>
+                   <button id="calendar-today" class="h-9 px-4 text-sm font-semibold rounded-lg text-secondary bg-panel border border-border hover:bg-hover">Hoje</button>
+               </div>
              </div>
              <div id="calendar-grid-header" class="grid grid-cols-7"></div>
              <div id="calendar-grid" class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-border border-t border-l border-border rounded-lg overflow-hidden">
@@ -283,7 +277,7 @@
           </div>
 
         </div>
-        
+
         <!-- Other Views (Mocks) -->
         <div id="contacts-view" class="view hidden"></div>
         <div id="companies-view" class="view hidden"><div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Empresas (Mock)</h1></div></div>
@@ -292,7 +286,7 @@
 
       </main>
     </div>
-    
+
     <!-- Card Detail Drawer -->
     <div id="card-drawer" class="fixed top-0 right-0 h-full w-[600px] bg-panel border-l border-border shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
       <!-- Drawer content will be injected here -->
@@ -301,7 +295,7 @@
 
     <!-- Toast Container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-[100] space-y-3"></div>
-    
+
     <!-- Modal Container -->
     <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300 flex"> <!-- FIX: Added 'flex' -->
         <div id="modal-box" class="bg-panel rounded-2xl shadow-xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300">
@@ -329,9 +323,9 @@
         elements: {
           app: document.getElementById('app'),
           sidebarNav: document.getElementById('sidebar-nav'),
-          viewTitle: document.getElementById('view-title'),
+          viewTitle: document.getElementById('view-title'), // This element remains, but it's populated differently now
           viewsContainer: document.getElementById('views-container'),
-          themeToggle: document.getElementById('theme-toggle'),
+          themeToggle: document.getElementById('theme-toggle'), // Moved
           kanbanView: document.getElementById('kanban-view'),
           kanbanBoard: document.getElementById('kanban-board'),
           kanbanBoardWrapper: document.getElementById('kanban-board-wrapper'),
@@ -346,12 +340,12 @@
           modalOverlay: document.getElementById('modal-overlay'),
           modalBox: document.getElementById('modal-box'),
           globalSearch: document.getElementById('global-search'),
-          addNewLeadHeaderBtn: document.getElementById('add-new-lead-header'),
+          addNewLeadHeaderBtn: document.getElementById('add-new-lead-header'), // Moved
           filterBtn: document.getElementById('filter-btn'),
           filterPopup: document.getElementById('filter-popup'),
           filterIndicator: document.getElementById('filter-indicator'),
-          refreshDataBtn: document.getElementById('refresh-data-btn'), // NOVO
-          showLogsBtn: document.getElementById('show-logs-btn'), // NOVO
+          refreshDataBtn: document.getElementById('refresh-data-btn'), // Moved
+          showLogsBtn: document.getElementById('show-logs-btn'),
           calendar: {
               grid: document.getElementById('calendar-grid'),
               gridHeader: document.getElementById('calendar-grid-header'),
@@ -359,7 +353,7 @@
               prevBtn: document.getElementById('calendar-prev'),
               nextBtn: document.getElementById('calendar-next'),
               todayBtn: document.getElementById('calendar-today'),
-              calendarDataSource: document.getElementById('calendar-data-source'), // NOVO
+              calendarDataSource: document.getElementById('calendar-data-source'),
           },
         },
         config: {
@@ -379,13 +373,13 @@
         init() {
           this.initTheme();
           this.loadState();
-          this.addLog('Aplicação iniciada, estado carregado.'); // NOVO
+          this.addLog('Aplicação iniciada, estado carregado.');
           this.initRouter();
           this.renderSidebar();
           this.attachEventListeners();
           lucide.createIcons();
         },
-        
+
         // --- LOGGING & API MOCK ---
         addLog(message, type = 'info') {
             const time = dayjs().format('HH:mm:ss');
@@ -399,9 +393,9 @@
         apiPutLeads(reason) {
             this.addLog(`[PUT /crm/leads] Salvando... (Motivo: ${reason})`);
             // Simulação de salvamento instantâneo no localStorage
-            this.saveState(); 
+            this.saveState();
             this.addLog(`[PUT /crm/leads] Estado salvo com sucesso.`, 'success');
-            
+
             // Imediatamente dispara o GET
             this.apiGetLeads(`Atualização pós-${reason}`);
         },
@@ -411,7 +405,7 @@
             this.addLog(`[GET /crm/leads] Puxando dados... (Motivo: ${reason})`);
             const spinIcon = this.elements.refreshDataBtn.querySelector('i');
             if(spinIcon) spinIcon.classList.add('animate-spin');
-            
+
             setTimeout(() => { // Simular atraso de rede
                 this.loadState(); // O "load" real
                 this.addLog(`[GET /crm/leads] Dados recebidos.`, 'success');
@@ -424,7 +418,7 @@
         uid() {
           return Date.now().toString(36) + Math.random().toString(36).substring(2);
         },
-        
+
         loadState() {
           const storedState = localStorage.getItem('crmCentral');
           if (storedState) {
@@ -439,13 +433,22 @@
             activeMainView: 'board' // 'board' or 'list' or 'calendar'
           };
           this.config.previousMainView = ['board', 'list'].includes(this.state.viewState.activeMainView) ? this.state.viewState.activeMainView : 'board';
+
+          // MUDANÇA: Make sure calendar default reflects in state if not explicitly set
+          // This ensures the first load after seeding defaults correctly visually
+           if (!this.state.viewState.calendarDataSource) {
+             this.state.viewState.calendarDataSource = 'nextContactDate';
+           }
+           if (this.elements.calendar.calendarDataSource) { // Ensure element exists
+             this.elements.calendar.calendarDataSource.value = this.state.viewState.calendarDataSource;
+           }
         },
-        
+
         saveState() {
           // Esta é a única função que escreve no localStorage
           localStorage.setItem('crmCentral', JSON.stringify(this.state));
         },
-        
+
         updateCard(cardId, updates) {
             const board = this.state.boards[0];
             const cardIndex = board.cards.findIndex(c => c.id === cardId);
@@ -458,16 +461,16 @@
                          board.cards[cardIndex].timeline.push({ t: 'edited', field: changedKeys.join(', '), at: new Date().toISOString() });
                     }
                 }
-                
+
                 board.cards[cardIndex] = { ...board.cards[cardIndex], ...updates };
                 const contactIndex = this.state.contacts.findIndex(c => c.id === cardId);
                 if(contactIndex !== -1) {
                     this.state.contacts[contactIndex] = { ...this.state.contacts[contactIndex], ...updates };
                 }
-                
+
                 // ATUALIZADO: Chamar API PUT
                 this.apiPutLeads(`Atualização de card: ${Object.keys(updates).join(', ')}`);
-                
+
                 return board.cards[cardIndex];
             }
             return null;
@@ -486,8 +489,8 @@
                 {id:"lead_7", listId:"proposta", name:"Roberto", sobrenome:"Alves", company:"Logística Express", email:"roberto@logisticaexpress.com", phone:"27987651234", origin:"Google Ads", value:95000, priority:"alta", labels:["Logística", "Grande"], members:["AC"], createdAt:today.startOf('month').add(8, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
                 {id:"lead_8", listId:"proposta", name:"Juliana", sobrenome:"Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"41918248614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
                 {id:"lead_9", listId:"ganhou", name:"Sandra", sobrenome:"Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"51998234512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
-              ].map(c => ({...c, 
-                checklist: [{id:this.uid(),text:"Retornar contato",done:Math.random()>0.5}], 
+              ].map(c => ({...c,
+                // REMOVED CHECKLIST SEEDING
                 timeline:[{t:"created",at:c.createdAt}],
                 notes: "",
                 cidade: "",
@@ -522,21 +525,22 @@
             }],
             contacts: cards.map(c => ({...c})),
             automations: [
-              {when:"move_to", to:"proposta", do:"create_task", payload:{text:"Enviar proposta em 2 dias"}, active: true},
+              // REMOVED checklist related automation
               {when:"move_to", to:"ganhou", do:"toast", payload:{text:"Lead fechado com sucesso!"}, active: true},
               {when:"create_with_origin", origin:"Meta Ads", do:"assign", payload:{member:"AC"}, active: true}
             ],
             viewState: {
                 filters: { origin: [], labels: [], dateRange: { start: null, end: null } },
                 sortBy: 'default',
-                activeMainView: 'board'
+                activeMainView: 'board',
+                calendarDataSource: 'nextContactDate' // MUDANÇA: Define o default do calendário aqui
             }
           };
-          
+
           // ATUALIZADO: Chamar API PUT
           this.apiPutLeads('Estado inicial (seed)');
         },
-        
+
         // --- THEME ---
         initTheme() {
           const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -555,30 +559,41 @@
         },
         handleRouteChange() {
           const hash = window.location.hash || '#/kanban';
-          this.closeDrawer(); 
+          this.closeDrawer();
           this.elements.filterPopup.classList.add('hidden');
           document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
           let currentRoute = this.config.routes.find(r => hash.startsWith(r.hash));
           let contactId = null;
 
-          // MUDANÇA: Lógica para pegar o ID do contato da URL
+          // Lógica para pegar o ID do contato da URL
           if (currentRoute && currentRoute.hash === '#/contacts' && hash.includes('/')) {
             contactId = hash.split('/')[2];
           }
-          
+
           if (currentRoute) {
             const viewElement = document.getElementById(currentRoute.view);
             if (viewElement) {
               viewElement.classList.remove('hidden');
-              // MUDANÇA: Título dinâmico para página de contato
-              this.elements.viewTitle.textContent = contactId ? 'Detalhe do Contato' : currentRoute.title;
+              // Título dinâmico para página de contato - Agora no Kanban View header
+              // this.elements.viewTitle.textContent = contactId ? 'Detalhe do Contato' : currentRoute.title; // REMOVED THIS LINE
 
               if(currentRoute.view === 'kanban-view') {
                 this.renderKanbanView(); // Renders board, list, or calendar based on state
                 this.renderFilterPopup();
+                 // MUDANÇA: Seta o título H2 corretamente ao carregar a view do kanban
+                document.getElementById('view-title').textContent = 'Kanban de Leads';
               }
-              // MUDANÇA: Renderiza a página de contato se o ID existir
-              if(currentRoute.view === 'contacts-view') this.renderContactDetail(contactId);
+              // Renderiza a página de contato se o ID existir
+              if(currentRoute.view === 'contacts-view') {
+                  this.renderContactDetail(contactId);
+                   // MUDANÇA: Seta o título H2 corretamente ao carregar a view de contatos
+                   document.getElementById('view-title').textContent = contactId ? 'Detalhe do Contato' : 'Contatos';
+              }
+               // MUDANÇA: Handle other views' titles
+               if (!['kanban-view', 'contacts-view'].includes(currentRoute.view)) {
+                 document.getElementById('view-title').textContent = currentRoute.title;
+               }
+
 
               document.querySelectorAll('#sidebar-nav a').forEach(a => {
                 a.classList.toggle('bg-hover', a.getAttribute('href').startsWith(currentRoute.hash));
@@ -589,11 +604,11 @@
              window.location.hash = '#/kanban';
           }
         },
-        
+
         // --- AUTOMATION ---
         runAutomations(type, data) {
           const activeAutomations = this.state.automations.filter(a => a.active);
-          
+
           activeAutomations.forEach(auto => {
             if (type === 'move_to' && auto.when === 'move_to' && auto.to === data.toList.id) {
               this.executeAutomationAction(auto, data.card);
@@ -603,28 +618,22 @@
             }
           });
         },
-        
+
         executeAutomationAction(automation, card) {
           console.log(`Executing automation: ${automation.do}`, card.name);
           const board = this.state.boards[0];
           const cardIndex = board.cards.findIndex(c => c.id === card.id);
 
           switch (automation.do) {
-            case 'create_task':
-              if (cardIndex > -1) {
-                const newChecklistItem = { id: this.uid(), text: automation.payload.text, done: false };
-                board.cards[cardIndex].checklist.push(newChecklistItem);
-                this.showToast(`Tarefa criada para ${card.name}`, 'info');
-              }
-              break;
+             // REMOVED create_task case
             case 'toast':
               this.showToast(automation.payload.text.replace('{name}', card.name), 'success');
               break;
             case 'assign':
                if (cardIndex > -1) {
                  if(!board.cards[cardIndex].members.includes(automation.payload.member)){
-                     board.cards[cardIndex].members.push(automation.payload.member);
-                     this.showToast(`${card.name} atribuído para ${automation.payload.member}`, 'info');
+                      board.cards[cardIndex].members.push(automation.payload.member);
+                      this.showToast(`${card.name} atribuído para ${automation.payload.member}`, 'info');
                  }
                }
               break;
@@ -645,10 +654,10 @@
           `).join('');
           lucide.createIcons();
         },
-        
+
         renderKanbanView() {
             const currentView = this.state.viewState.activeMainView;
-            
+
             // Hide all wrappers first
             this.elements.kanbanBoardWrapper.classList.add('hidden');
             this.elements.listViewWrapper.classList.add('hidden');
@@ -660,7 +669,7 @@
             if (currentView === 'board') {
                 this.elements.kanbanBoardWrapper.classList.remove('hidden');
                 this.elements.mainViewToggle.innerHTML = `<i data-lucide="list" class="h-4 w-4 mr-2"></i>Visão: Lista`;
-                this.renderKanbanBoardContent(); 
+                this.renderKanbanBoardContent();
             } else if (currentView === 'list') {
                  this.elements.listViewWrapper.classList.remove('hidden');
                  this.elements.mainViewToggle.innerHTML = `<i data-lucide="kanban-square" class="h-4 w-4 mr-2"></i>Visão: Kanban`;
@@ -682,10 +691,10 @@
             const { filters, sortBy } = this.state.viewState;
 
             // Apply search
-            let processedCards = searchTerm 
+            let processedCards = searchTerm
                 ? board.cards.filter(card => Object.values(card).some(val => String(val).toLowerCase().includes(searchTerm)))
                 : [...board.cards];
-            
+
             // Apply filters
             if (filters.origin.length > 0) {
                 processedCards = processedCards.filter(c => filters.origin.includes(c.origin));
@@ -701,7 +710,7 @@
                     return lastMod.isBetween(start, end);
                 });
             }
-            
+
              // Apply sorting (for list view primarily, Kanban sorts within columns)
             switch(sortBy) {
                 case 'value': processedCards.sort((a, b) => b.value - a.value); break;
@@ -717,7 +726,7 @@
             const board = this.state.boards[0];
             const lists = [...board.lists].sort((a,b) => a.order - b.order);
             const processedCards = this.getProcessedCards(); // Get filtered/searched cards
-            
+
             let boardHtml = lists.map(list => {
                 let listCards = processedCards.filter(c => c.listId === list.id);
                 // Kanban columns don't apply the global sort, only filter/search
@@ -739,9 +748,7 @@
                     <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto">
                       ${listCards.map(card => this.getCardHtml(card)).join('')}
                     </div>
-                    <div class="p-2">
-                        <button class="add-lead-in-list w-full text-left p-2 rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors flex items-center text-sm" data-list-id="${list.id}"><i data-lucide="plus" class="h-4 w-4 mr-2"></i>Adicionar lead</button>
-                    </div>
+                    <!-- REMOVED bottom add lead button -->
                   </div>
                 `
             }).join('');
@@ -755,7 +762,10 @@
             `;
 
             this.elements.kanbanBoard.innerHTML = boardHtml;
-            document.getElementById('add-new-list-btn').addEventListener('click', () => this.showNewListModal());
+            const addNewListBtn = document.getElementById('add-new-list-btn');
+            if (addNewListBtn) { // Add null check
+              addNewListBtn.addEventListener('click', () => this.showNewListModal());
+            }
 
             lucide.createIcons();
             this.initKanbanSortable();
@@ -770,26 +780,26 @@
                 const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400', 'Manual': 'bg-gray-500/20 text-gray-400' };
 
                 return `
-                    <tr class="list-view-row border-b border-border cursor-pointer" data-card-id="${card.id}">
-                        <td class="px-6 py-4 font-medium text-text whitespace-nowrap">${card.name} ${card.sobrenome || ''}</td>
-                        <td class="px-6 py-4 text-secondary">${card.company || '-'}</td>
-                        <td class="px-6 py-4 text-secondary">${list ? list.name : 'N/A'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${originColors[card.origin] || 'bg-gray-500/20 text-gray-400'}">${card.origin}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex -space-x-2">
-                                ${card.members.map(mId => {
-                                    const member = board.availableMembers.find(m => m.id === mId);
-                                    return member ? `<img class="h-7 w-7 rounded-full border-2 border-panel" src="${member.avatar}" title="${member.name}">` : ''
-                                }).join('')}
-                            </div>
-                        </td>
-                         <td class="px-6 py-4 text-secondary">${dayjs(card.createdAt).format('DD/MM/YYYY')}</td>
-                        <td class="px-6 py-4 text-right">
-                          <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
-                        </td>
-                    </tr>
+                  <tr class="list-view-row border-b border-border cursor-pointer" data-card-id="${card.id}">
+                      <td class="px-6 py-4 font-medium text-text whitespace-nowrap">${card.name} ${card.sobrenome || ''}</td>
+                      <td class="px-6 py-4 text-secondary">${card.company || '-'}</td>
+                      <td class="px-6 py-4 text-secondary">${list ? list.name : 'N/A'}</td>
+                      <td class="px-6 py-4">
+                          <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${originColors[card.origin] || 'bg-gray-500/20 text-gray-400'}">${card.origin}</span>
+                      </td>
+                      <td class="px-6 py-4">
+                          <div class="flex -space-x-2">
+                              ${card.members.map(mId => {
+                                  const member = board.availableMembers.find(m => m.id === mId);
+                                  return member ? `<img class="h-7 w-7 rounded-full border-2 border-panel" src="${member.avatar}" title="${member.name}">` : ''
+                              }).join('')}
+                          </div>
+                      </td>
+                       <td class="px-6 py-4 text-secondary">${dayjs(card.createdAt).format('DD/MM/YYYY')}</td>
+                      <td class="px-6 py-4 text-right">
+                        <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
+                      </td>
+                  </tr>
                 `;
             }).join('');
              lucide.createIcons();
@@ -797,10 +807,10 @@
 
 
         getCardHtml(card) {
-          const checklistProgress = card.checklist.length > 0 ? (card.checklist.filter(c => c.done).length / card.checklist.length) * 100 : 0;
+          // REMOVED checklistProgress calculation
           const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400', 'Manual': 'bg-gray-500/20 text-gray-400' };
           const board = this.state.boards[0];
-          
+
           return `
             <div class="kanban-card p-4 bg-panel rounded-xl border border-border shadow-sm cursor-pointer hover:shadow-md hover:border-brand-blue/50 transition-all" data-card-id="${card.id}" draggable="true">
               <div class="flex items-start justify-between mb-2">
@@ -808,7 +818,6 @@
                     <h5 class="font-semibold text-text mb-1">${card.name} ${card.sobrenome || ''}</h5>
                     <p class="text-sm text-secondary">${card.company || 'Sem empresa'}</p>
                 </div>
-                <!-- MUDANÇA: Botão "..." removido, botão de lixeira adicionado -->
                 <div class="flex-shrink-0 flex items-center">
                     <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}" title="Enviar Mensagem"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
                     <button class="card-delete-btn h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-red-500" data-card-id="${card.id}" title="Excluir Lead">
@@ -821,7 +830,7 @@
                 <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${originColors[card.origin] || 'bg-gray-500/20 text-gray-400'}">${card.origin}</span>
                 ${card.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
               </div>
-              
+
               <div class="text-sm text-secondary space-y-1.5 mb-4">
                   <div class="flex items-center"><i data-lucide="mail" class="h-4 w-4 mr-2"></i><span>${card.email || '-'}</span></div>
                   <div class="flex items-center"><i data-lucide="phone" class="h-4 w-4 mr-2"></i><span>${card.phone || '-'}</span></div>
@@ -830,9 +839,8 @@
               <div class="flex items-center justify-between text-sm text-secondary">
                   <div class="flex items-center gap-4">
                     ${card.dueDate ? `<div class="flex items-center"><i data-lucide="calendar" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.dueDate).format('DD MMM')}</span></div>` : ''}
-                    <!-- MUDANÇA: Exibe data do próximo contato se existir -->
                     ${card.nextContactDate ? `<div class="flex items-center text-blue-400"><i data-lucide="calendar-check" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.nextContactDate).format('DD MMM')}</span></div>` : ''}
-                    ${card.checklist.length > 0 ? `<div class="flex items-center ${checklistProgress === 100 ? 'text-green-400' : ''}"><i data-lucide="check-square" class="h-4 w-4 mr-1.5"></i><span>${card.checklist.filter(c=>c.done).length}/${card.checklist.length}</span></div>` : ''}
+                    <!-- REMOVED checklist display -->
                   </div>
                   <div class="flex -space-x-2">
                     ${card.members.map(mId => {
@@ -847,8 +855,8 @@
 
         renderCalendar() {
             this.elements.calendar.title.textContent = this.config.currentDate.format('MMMM YYYY');
-            this.elements.calendar.grid.innerHTML = ''; 
-            this.elements.calendar.gridHeader.innerHTML = ''; 
+            this.elements.calendar.grid.innerHTML = '';
+            this.elements.calendar.gridHeader.innerHTML = '';
 
             const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
             this.elements.calendar.gridHeader.innerHTML = dayNames.map(d => `<div class="text-center p-2 text-xs font-bold text-secondary border-b border-border">${d}</div>`).join('');
@@ -857,66 +865,65 @@
             const startDay = firstDayOfMonth.startOf('week');
             const board = this.state.boards[0];
             let currentDay = startDay;
-            
-            // MUDANÇA: Pega a fonte de dados (data de criação ou próximo contato)
-            const dataSource = this.elements.calendar.calendarDataSource.value || 'createdAt';
+
+            // Pega a fonte de dados (data de criação ou próximo contato)
+            const dataSource = this.elements.calendar.calendarDataSource.value || 'nextContactDate'; // Default to nextContactDate if value is missing
 
             for (let i = 0; i < 35; i++) {
                 const isCurrentMonth = currentDay.isSame(this.config.currentDate, 'month');
                 const isToday = currentDay.isSame(dayjs(), 'day');
-                
-                // MUDANÇA: Filtra os cartões baseado na fonte de dados selecionada
+
+                // Filtra os cartões baseado na fonte de dados selecionada
                 const cardsOnDay = board.cards.filter(c => {
                     const dateToCompare = c[dataSource];
                     return dateToCompare && dayjs(dateToCompare).isSame(currentDay, 'day');
                 });
-                
+
                 const dayCell = document.createElement('div');
                 dayCell.className = `p-2 overflow-hidden border-r border-b border-border relative ${isCurrentMonth ? 'bg-panel' : 'bg-base'} group transition-colors hover:bg-hover`;
                 dayCell.dataset.date = currentDay.format('YYYY-MM-DD');
 
                 dayCell.innerHTML = `
-                    <span class="text-sm font-semibold ${isToday ? 'bg-brand-blue text-white rounded-full h-7 w-7 flex items-center justify-center' : (isCurrentMonth ? 'text-text' : 'text-secondary/50')}">${currentDay.format('D')}</span>
-                    <div class="cards-container mt-2 space-y-1.5 overflow-y-auto" style="max-height: 80px;">
-                        ${cardsOnDay.map(card => `
-                            <div class="kanban-card p-1.5 text-xs rounded-md ${dataSource === 'nextContactDate' ? 'bg-blue-600' : 'bg-slate-700'} text-white truncate cursor-pointer hover:bg-slate-600" data-card-id="${card.id}">
-                                ${card.name}
-                            </div>
-                        `).join('')}
-                    </div>
+                  <span class="text-sm font-semibold ${isToday ? 'bg-brand-blue text-white rounded-full h-7 w-7 flex items-center justify-center' : (isCurrentMonth ? 'text-text' : 'text-secondary/50')}">${currentDay.format('D')}</span>
+                  <div class="cards-container mt-2 space-y-1.5 overflow-y-auto" style="max-height: 80px;">
+                      ${cardsOnDay.map(card => `
+                          <div class="kanban-card p-1.5 text-xs rounded-md ${dataSource === 'nextContactDate' ? 'bg-blue-600' : 'bg-slate-700'} text-white truncate cursor-pointer hover:bg-slate-600" data-card-id="${card.id}">
+                              ${card.name}
+                          </div>
+                      `).join('')}
+                  </div>
                 `;
                 this.elements.calendar.grid.appendChild(dayCell);
                 currentDay = currentDay.add(1, 'day');
             }
             this.initCalendarSortable();
         },
-        
+
         renderContactDetail(contactId) {
             const viewEl = document.getElementById('contacts-view');
             if (!contactId) {
-                // MUDANÇA: Página de 'Contatos' padrão se nenhum ID for selecionado
-                // (Isso é acionado se o usuário apenas clicar em '#/contacts')
+                // Página de 'Contatos' padrão se nenhum ID for selecionado
                 const allContacts = this.state.contacts;
                 viewEl.innerHTML = `
-                    <div class="bg-panel p-8 rounded-2xl">
-                        <h1 class="text-2xl font-bold mb-6">Todos os Contatos (${allContacts.length})</h1>
-                        <div class="space-y-3">
-                            ${allContacts.map(contact => `
-                                <a href="#/contacts/${contact.id}" class="flex items-center p-3 bg-base rounded-lg hover:bg-hover">
-                                    <div class="h-10 w-10 rounded-full bg-brand-blue text-white flex items-center justify-center text-xl font-bold mr-4">
-                                        ${contact.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold text-text">${contact.name} ${contact.sobrenome || ''}</p>
-                                        <p class="text-sm text-secondary">${contact.company || 'Sem empresa'}</p>
-                                    </div>
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>`;
+                  <div class="bg-panel p-8 rounded-2xl">
+                      <h1 class="text-2xl font-bold mb-6">Todos os Contatos (${allContacts.length})</h1>
+                      <div class="space-y-3">
+                          ${allContacts.map(contact => `
+                              <a href="#/contacts/${contact.id}" class="flex items-center p-3 bg-base rounded-lg hover:bg-hover">
+                                  <div class="h-10 w-10 rounded-full bg-brand-blue text-white flex items-center justify-center text-xl font-bold mr-4">
+                                      ${contact.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                      <p class="font-semibold text-text">${contact.name} ${contact.sobrenome || ''}</p>
+                                      <p class="text-sm text-secondary">${contact.company || 'Sem empresa'}</p>
+                                  </div>
+                              </a>
+                          `).join('')}
+                      </div>
+                  </div>`;
                 return;
             }
-            
+
             const contact = this.state.contacts.find(c => c.id === contactId);
             if(!contact) {
                 viewEl.innerHTML = `<div class="bg-panel p-8 rounded-2xl"><h1 class="text-2xl font-bold">Contato não encontrado</h1><p class="text-secondary">O lead pode ter sido excluído. <a href="#/kanban" class="text-brand-blue">Voltar ao Kanban</a></p></div>`;
@@ -928,125 +935,123 @@
             const lastActivity = dayjs(contact.timeline[contact.timeline.length - 1].at).fromNow();
 
             viewEl.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Coluna da Esquerda (Detalhes) -->
-                    <div class="md:col-span-1 space-y-6">
-                        <div class="bg-panel p-6 rounded-2xl">
-                            <div class="flex flex-col items-center">
-                                <div class="h-20 w-20 rounded-full bg-brand-blue text-white flex items-center justify-center text-3xl font-bold mb-4">
-                                    ${contact.name.charAt(0)}
-                                </div>
-                                <h1 class="text-2xl font-bold text-text">${contact.name} ${contact.sobrenome || ''}</h1>
-                                <p class="text-sm text-secondary text-center">Criado ${timeSinceCreation} • Última atividade ${lastActivity}</p>
-                                <div class="mt-3 flex items-center gap-2 flex-wrap justify-center">
-                                    ${contact.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
-                                </div>
-                            </div>
-                        </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <!-- Coluna da Esquerda (Detalhes) -->
+                  <div class="md:col-span-1 space-y-6">
+                      <div class="bg-panel p-6 rounded-2xl">
+                          <div class="flex flex-col items-center">
+                              <div class="h-20 w-20 rounded-full bg-brand-blue text-white flex items-center justify-center text-3xl font-bold mb-4">
+                                  ${contact.name.charAt(0)}
+                              </div>
+                              <h1 class="text-2xl font-bold text-text">${contact.name} ${contact.sobrenome || ''}</h1>
+                              <p class="text-sm text-secondary text-center">Criado ${timeSinceCreation} • Última atividade ${lastActivity}</p>
+                              <div class="mt-3 flex items-center gap-2 flex-wrap justify-center">
+                                  ${contact.labels.map(l => `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-600 text-slate-200">${l}</span>`).join('')}
+                              </div>
+                          </div>
+                      </div>
 
-                        <div class="bg-panel p-6 rounded-2xl">
-                            <h3 class="text-lg font-semibold mb-4">Alterar detalhes do contato</h3>
-                            <form id="contact-details-form" class="space-y-4">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="text-sm font-medium text-secondary">Nome</label>
-                                        <input name="name" value="${contact.name || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                    </div>
-                                    <div>
-                                        <label class="text-sm font-medium text-secondary">Sobrenome</label>
-                                        <input name="sobrenome" value="${contact.sobrenome || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-secondary">Email</label>
-                                    <input name="email" value="${contact.email || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-secondary">Telefone</label>
-                                    <input name="phone" value="${contact.phone || ''}" placeholder="Apenas números" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-secondary">Empresa</label>
-                                    <input name="company" value="${contact.company || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                </div>
-                                <!-- MUDANÇA: Texto do botão -->
-                                <button type="submit" class="w-full h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar Alterações</button>
-                            </form>
-                        </div>
-                    </div>
+                      <div class="bg-panel p-6 rounded-2xl">
+                          <h3 class="text-lg font-semibold mb-4">Alterar detalhes do contato</h3>
+                          <form id="contact-details-form" class="space-y-4">
+                              <div class="grid grid-cols-2 gap-4">
+                                  <div>
+                                      <label class="text-sm font-medium text-secondary">Nome</label>
+                                      <input name="name" value="${contact.name || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                  </div>
+                                  <div>
+                                      <label class="text-sm font-medium text-secondary">Sobrenome</label>
+                                      <input name="sobrenome" value="${contact.sobrenome || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                  </div>
+                              </div>
+                              <div>
+                                  <label class="text-sm font-medium text-secondary">Email</label>
+                                  <input name="email" value="${contact.email || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                              </div>
+                              <div>
+                                  <label class="text-sm font-medium text-secondary">Telefone</label>
+                                  <input name="phone" value="${contact.phone || ''}" placeholder="Apenas números" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                              </div>
+                              <div>
+                                  <label class="text-sm font-medium text-secondary">Empresa</label>
+                                  <input name="company" value="${contact.company || ''}" class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                              </div>
+                              <button type="submit" class="w-full h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar Alterações</button>
+                          </form>
+                      </div>
+                  </div>
 
-                    <!-- Coluna da Direita (Abas) -->
-                    <div class="md:col-span-2 bg-panel p-6 rounded-2xl">
-                        <!-- MUDANÇA: Adicionada aba "Próximo Contato" -->
-                        <div class="flex items-center border-b border-border">
-                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-brand-blue text-text" data-tab="notas">Notas</button>
-                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="data">Próximo Contato</button>
-                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="atributos">Atributos</button>
-                            <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="historico">Histórico</button>
-                        </div>
-                        
-                        <div id="contact-tab-content" class="mt-6">
-                            <!-- Aba de Notas -->
-                            <div id="tab-notas" class="contact-tab-panel">
-                                <h4 class="text-sm font-semibold text-secondary mb-2">Adicionar uma nota</h4>
-                                <textarea id="contact-note-textarea" class="w-full h-24 bg-base border border-border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="Digite sua nota...">${contact.notes || ''}</textarea>
-                                <div class="flex justify-end mt-2">
-                                    <button id="save-note-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar nota</button>
-                                </div>
-                            </div>
-                            
-                            <!-- MUDANÇA: Nova Aba de Próximo Contato -->
-                            <div id="tab-data" class="contact-tab-panel hidden">
-                                <h4 class="text-sm font-semibold text-secondary mb-2">Agendar Próximo Contato</h4>
-                                <input id="next-contact-datepicker" type="text" placeholder="Selecione uma data..." class="w-full max-w-sm bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                <div class="flex justify-start mt-2">
-                                    <button id="save-next-contact-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar Data</button>
-                                </div>
-                            </div>
+                  <!-- Coluna da Direita (Abas) -->
+                  <div class="md:col-span-2 bg-panel p-6 rounded-2xl">
+                      <div class="flex items-center border-b border-border">
+                          <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-brand-blue text-text" data-tab="notas">Notas</button>
+                          <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="data">Próximo Contato</button>
+                          <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="atributos">Atributos</button>
+                          <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-transparent text-secondary hover:text-text" data-tab="historico">Histórico</button>
+                      </div>
 
-                            <!-- Aba de Atributos -->
-                            <div id="tab-atributos" class="contact-tab-panel hidden">
-                                <div id="attributes-list" class="space-y-3">
-                                    ${contact.attributes.map(attr => `
-                                        <div class="grid grid-cols-2 gap-3" data-attr-id="${attr.id}">
-                                            <input value="${attr.key}" data-field="key" placeholder="Nome do Atributo (Ex: Canal Preferido)" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                            <input value="${attr.value}" data-field="value" placeholder="Valor (Ex: WhatsApp)" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                <button id="add-attribute-btn" class="mt-4 h-9 px-4 rounded-lg text-sm font-semibold bg-base text-secondary hover:bg-hover border border-border"><i data-lucide="plus" class="h-4 w-4 inline-block mr-1"></i> Adicionar atributo</button>
-                            </div>
+                      <div id="contact-tab-content" class="mt-6">
+                          <!-- Aba de Notas -->
+                          <div id="tab-notas" class="contact-tab-panel">
+                              <h4 class="text-sm font-semibold text-secondary mb-2">Adicionar uma nota</h4>
+                              <textarea id="contact-note-textarea" class="w-full h-24 bg-base border border-border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="Digite sua nota...">${contact.notes || ''}</textarea>
+                              <div class="flex justify-end mt-2">
+                                  <button id="save-note-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar nota</button>
+                              </div>
+                          </div>
 
-                            <!-- Aba de Histórico -->
-                            <div id="tab-historico" class="contact-tab-panel hidden">
-                                <div class="space-y-6">
-                                ${[...contact.timeline].reverse().map(entry => `
-                                    <div class="flex gap-4">
-                                        <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
-                                            <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : (entry.t === 'rescheduled' ? 'calendar-check' : 'pencil'))}" class="h-5 w-5 text-white"></i>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium text-text">${this.getTimelineEntryText(entry, board.lists)}</p>
-                                            <p class="text-sm text-secondary">${dayjs(entry.at).format('DD MMM YYYY [às] HH:mm')}</p>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                          <!-- Nova Aba de Próximo Contato -->
+                          <div id="tab-data" class="contact-tab-panel hidden">
+                              <h4 class="text-sm font-semibold text-secondary mb-2">Agendar Próximo Contato</h4>
+                              <input id="next-contact-datepicker" type="text" placeholder="Selecione uma data..." class="w-full max-w-sm bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                              <div class="flex justify-start mt-2">
+                                  <button id="save-next-contact-btn" class="h-9 px-4 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-blue-700">Salvar Data</button>
+                              </div>
+                          </div>
+
+                          <!-- Aba de Atributos -->
+                          <div id="tab-atributos" class="contact-tab-panel hidden">
+                              <div id="attributes-list" class="space-y-3">
+                                  ${contact.attributes.map(attr => `
+                                      <div class="grid grid-cols-2 gap-3" data-attr-id="${attr.id}">
+                                          <input value="${attr.key}" data-field="key" placeholder="Nome do Atributo (Ex: Canal Preferido)" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                          <input value="${attr.value}" data-field="value" placeholder="Valor (Ex: WhatsApp)" class="attr-input w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                                      </div>
+                                  `).join('')}
+                              </div>
+                              <button id="add-attribute-btn" class="mt-4 h-9 px-4 rounded-lg text-sm font-semibold bg-base text-secondary hover:bg-hover border border-border"><i data-lucide="plus" class="h-4 w-4 inline-block mr-1"></i> Adicionar atributo</button>
+                          </div>
+
+                          <!-- Aba de Histórico -->
+                          <div id="tab-historico" class="contact-tab-panel hidden">
+                              <div class="space-y-6">
+                              ${[...contact.timeline].reverse().map(entry => `
+                                  <div class="flex gap-4">
+                                      <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
+                                          <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : (entry.t === 'rescheduled' ? 'calendar-check' : 'pencil'))}" class="h-5 w-5 text-white"></i>
+                                      </div>
+                                      <div>
+                                          <p class="font-medium text-text">${this.getTimelineEntryText(entry, board.lists)}</p>
+                                          <p class="text-sm text-secondary">${dayjs(entry.at).format('DD MMM YYYY [às] HH:mm')}</p>
+                                      </div>
+                                  </div>
+                              `).join('')}
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
             `;
             lucide.createIcons();
-            
+
             // Add Event Listeners for the new Contact Detail page
             this.attachContactDetailListeners(contactId);
         },
-        
-        attachContactDetailListeners(contactId, activeTab = 'notas') { // Added activeTab parameter
+
+        attachContactDetailListeners(contactId, activeTab = 'notas') {
             const contact = this.state.contacts.find(c => c.id === contactId);
             if (!contact) return; // Sai se o contato não for encontrado
-            
+
             // Function to set the active tab visually and internally
             const setActiveTab = (tabId) => {
                  document.querySelectorAll('.contact-tab-btn').forEach(b => {
@@ -1065,8 +1070,8 @@
             document.querySelectorAll('.contact-tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
             });
-            
-             // Set initial active tab (important for the fix)
+
+             // Set initial active tab
             setActiveTab(activeTab);
 
             // Save Details Form
@@ -1093,7 +1098,7 @@
                 });
             }
 
-            // MUDANÇA: Salvar "Próximo Contato"
+            // Salvar "Próximo Contato"
             const saveNextContactBtn = document.getElementById('save-next-contact-btn');
             if (saveNextContactBtn) {
                 saveNextContactBtn.addEventListener('click', () => {
@@ -1109,7 +1114,7 @@
                 });
             }
 
-            // MUDANÇA: Inicializar Litepicker para "Próximo Contato"
+            // Inicializar Litepicker para "Próximo Contato"
             if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
             const dateInput = document.getElementById('next-contact-datepicker');
             if(dateInput) { // Apenas inicializa se o campo existir
@@ -1146,7 +1151,7 @@
                     const attrId = e.target.closest('[data-attr-id]').dataset.attrId;
                     const field = e.target.dataset.field;
                     const value = e.target.value;
-                    
+
                     const attrIndex = contact.attributes.findIndex(a => a.id === attrId);
                     if (attrIndex > -1) {
                         contact.attributes[attrIndex][field] = value;
@@ -1166,78 +1171,77 @@
                 default: return 'Atividade registrada';
             }
         },
-        
+
         renderCardDrawer(card) {
             const board = this.state.boards[0];
             const availableLabels = board.availableLabels.filter(l => !card.labels.includes(l));
             const availableMembers = board.availableMembers.filter(m => !card.members.includes(m.id));
 
             this.elements.cardDrawer.innerHTML = `
-                <div class="p-6 border-b border-border flex items-center justify-between">
-                     <h3 class="text-2xl font-bold text-text">${card.name}</h3>
-                     <button id="close-drawer" class="h-8 w-8 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text"><i data-lucide="x" class="h-5 w-5"></i></button>
-                </div>
-                <div class="flex-1 p-6 overflow-y-auto space-y-6">
-                    ${this.getDrawerFieldHtml('Nome do Lead', card, 'name', 'text')}
-                    ${this.getDrawerFieldHtml('Empresa (Opcional)', card, 'company', 'text')}
-                    <!-- Valor Removido -->
-                    ${this.getDrawerFieldHtml('E-mail', card, 'email', 'email')}
-                    ${this.getDrawerFieldHtml('Telefone (apenas números)', card, 'phone', 'tel')}
+              <div class="p-6 border-b border-border flex items-center justify-between">
+                   <h3 class="text-2xl font-bold text-text">${card.name}</h3>
+                   <button id="close-drawer" class="h-8 w-8 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text"><i data-lucide="x" class="h-5 w-5"></i></button>
+              </div>
+              <div class="flex-1 p-6 overflow-y-auto space-y-6">
+                  ${this.getDrawerFieldHtml('Nome do Lead', card, 'name', 'text')}
+                  ${this.getDrawerFieldHtml('Empresa (Opcional)', card, 'company', 'text')}
+                  <!-- Valor Removido -->
+                  ${this.getDrawerFieldHtml('E-mail', card, 'email', 'email')}
+                  ${this.getDrawerFieldHtml('Telefone (apenas números)', card, 'phone', 'tel')}
 
-                     <div>
-                         <label class="text-sm font-medium text-secondary">Responsáveis</label>
-                         <div id="drawer-members" class="flex flex-wrap gap-2 mt-2">
-                            ${card.members.map(mId => {
-                                const member = board.availableMembers.find(m => m.id === mId);
-                                return `
-                                <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
-                                    <img src="${member.avatar}" class="h-4 w-4 rounded-full" />
-                                    ${member.name}
-                                    <button class="remove-member-btn" data-member-id="${mId}"><i data-lucide="x" class="h-3 w-3"></i></button>
-                                </span>`
-                            }).join('')}
-                            <div class="relative">
-                                <button id="add-member-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
-                                <div id="member-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
-                                   ${availableMembers.map(m => `
-                                    <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover flex items-center gap-2 add-member-option" data-member-id="${m.id}">
-                                        <img src="${m.avatar}" class="h-5 w-5 rounded-full" /> ${m.name}
-                                    </button>
-                                   `).join('')}
-                                </div>
-                            </div>
-                         </div>
+                   <div>
+                       <label class="text-sm font-medium text-secondary">Responsáveis</label>
+                       <div id="drawer-members" class="flex flex-wrap gap-2 mt-2">
+                           ${card.members.map(mId => {
+                               const member = board.availableMembers.find(m => m.id === mId);
+                               return `
+                               <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
+                                   <img src="${member.avatar}" class="h-4 w-4 rounded-full" />
+                                   ${member.name}
+                                   <button class="remove-member-btn" data-member-id="${mId}"><i data-lucide="x" class="h-3 w-3"></i></button>
+                               </span>`
+                           }).join('')}
+                           <div class="relative">
+                               <button id="add-member-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
+                               <div id="member-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
+                                  ${availableMembers.map(m => `
+                                   <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover flex items-center gap-2 add-member-option" data-member-id="${m.id}">
+                                       <img src="${m.avatar}" class="h-5 w-5 rounded-full" /> ${m.name}
+                                   </button>
+                                  `).join('')}
+                               </div>
+                           </div>
                        </div>
+                      </div>
 
-                     <div>
-                         <label class="text-sm font-medium text-secondary">Etiquetas</label>
-                         <div id="drawer-labels" class="flex flex-wrap gap-2 mt-2">
-                            ${card.labels.map(label => `
-                                <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
-                                    ${label}
-                                    <button class="remove-label-btn" data-label="${label}"><i data-lucide="x" class="h-3 w-3"></i></button>
-                                </span>
-                            `).join('')}
-                            <div class="relative">
-                                <button id="add-label-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
-                                <div id="label-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
-                                    ${availableLabels.map(l => `<button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover add-label-option" data-label="${l}">${l}</button>`).join('')}
-                                </div>
-                            </div>
-                         </div>
+                   <div>
+                       <label class="text-sm font-medium text-secondary">Etiquetas</label>
+                       <div id="drawer-labels" class="flex flex-wrap gap-2 mt-2">
+                           ${card.labels.map(label => `
+                               <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
+                                   ${label}
+                                   <button class="remove-label-btn" data-label="${label}"><i data-lucide="x" class="h-3 w-3"></i></button>
+                               </span>
+                           `).join('')}
+                           <div class="relative">
+                               <button id="add-label-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
+                               <div id="label-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
+                                   ${availableLabels.map(l => `<button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover add-label-option" data-label="${l}">${l}</button>`).join('')}
+                               </div>
+                           </div>
                        </div>
-                </div>
-                 <!-- MUDANÇA: Botão de excluir removido do drawer -->
+                      </div>
+              </div>
             `;
             lucide.createIcons();
         },
-        
+
         getDrawerFieldHtml(label, card, key, type) {
             return `
-                <div class="editable-field" data-key="${key}" data-type="${type}">
-                    <label class="text-sm font-medium text-secondary">${label}</label>
-                    <p class="text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md">${card[key] || 'Não definido'}</p>
-                </div>
+              <div class="editable-field" data-key="${key}" data-type="${type}">
+                  <label class="text-sm font-medium text-secondary">${label}</label>
+                  <p class="text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md">${card[key] || 'Não definido'}</p>
+              </div>
             `;
         },
 
@@ -1259,18 +1263,18 @@
           setTimeout(() => this.elements.drawerOverlay.classList.add('hidden'), 300);
           this.elements.cardDrawer.dataset.cardId = '';
         },
-        
+
         makeFieldEditable(fieldElement) {
           const cardId = this.elements.cardDrawer.dataset.cardId;
           const key = fieldElement.dataset.key;
           const type = fieldElement.dataset.type;
-          
+
           const card = this.state.boards[0].cards.find(c => c.id === cardId);
           if (!card) return;
 
           const currentValue = card[key];
           const p = fieldElement.querySelector('p');
-          
+
           const input = document.createElement('input');
           input.type = type;
           input.value = currentValue || '';
@@ -1286,13 +1290,13 @@
               }
 
               this.updateCard(cardId, { [key]: newValue }); // This will trigger apiPutLeads
-              
+
               const newP = document.createElement('p');
               newP.className = "text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md";
               newP.textContent = newValue || 'Não definido';
               input.replaceWith(newP);
               this.showToast('Informação salva!', 'success');
-                                      
+
               // Re-render is handled by apiGetLeads
           };
 
@@ -1307,11 +1311,29 @@
         },
 
         initKanbanSortable() {
-          new Sortable(this.elements.kanbanBoard, {
+          const boardEl = this.elements.kanbanBoard;
+          if (!boardEl) return; // Add check
+
+          // Destroy existing Sortable instance if it exists
+          if (boardEl.sortableInstance) {
+              boardEl.sortableInstance.destroy();
+          }
+
+          boardEl.sortableInstance = new Sortable(boardEl, { // Store instance
               animation: 150, ghostClass: 'sortable-ghost', handle: '.handle',
               onEnd: (evt) => {
                   const board = this.state.boards[0];
+                  // Check if lists array exists and has elements
+                  if (!board || !board.lists || board.lists.length === 0) return;
+
+                   // Ensure oldIndex and newIndex are within bounds
+                   if (evt.oldIndex < 0 || evt.oldIndex >= board.lists.length || evt.newIndex < 0) return;
+
+
                   const [movedList] = board.lists.splice(evt.oldIndex, 1);
+                   // Ensure movedList is defined
+                  if (!movedList) return;
+
                   board.lists.splice(evt.newIndex, 0, movedList);
                   board.lists.forEach((list, index) => list.order = index);
                   // ATUALIZADO: Chamar API PUT
@@ -1320,54 +1342,74 @@
           });
 
           document.querySelectorAll('.list-cards').forEach(listEl => {
-              new Sortable(listEl, {
+             // Destroy existing Sortable instance if it exists
+             if (listEl.sortableInstance) {
+                 listEl.sortableInstance.destroy();
+             }
+             listEl.sortableInstance = new Sortable(listEl, { // Store instance
                   group: 'cards', animation: 150, ghostClass: 'sortable-ghost',
                   onEnd: (evt) => {
                       const cardId = evt.item.dataset.cardId;
-                      const fromListId = evt.from.closest('.kanban-list').dataset.listId;
-                      const toListId = evt.to.closest('.kanban-list').dataset.listId;
-                      
+                      const fromListEl = evt.from.closest('.kanban-list');
+                      const toListEl = evt.to.closest('.kanban-list');
+
+                      // Add checks for elements and dataset
+                      if (!fromListEl || !toListEl || !fromListEl.dataset.listId || !toListEl.dataset.listId) return;
+
+                      const fromListId = fromListEl.dataset.listId;
+                      const toListId = toListEl.dataset.listId;
+
                       const board = this.state.boards[0];
                       const card = board.cards.find(c => c.id === cardId);
-                      
+
                       if (card && fromListId !== toListId) {
                           card.listId = toListId;
                           card.timeline.push({ t: "moved", from: fromListId, to: toListId, at: new Date().toISOString() });
-                          
+
                           const toList = board.lists.find(l => l.id === toListId);
-                          this.runAutomations('move_to', { card, toList });
-      
-                          // ATUALIZADO: Chamar API PUT (runAutomations já chama, mas o movimento em si também deve)
+                          if (toList) { // Check if toList exists
+                            this.runAutomations('move_to', { card, toList });
+                          }
+
+                          // ATUALIZADO: Chamar API PUT
                           this.apiPutLeads(`Movimentação de lead: ${card.name}`);
                       }
                   },
               });
           });
         },
-        
+
         initCalendarSortable() {
             document.querySelectorAll('#calendar-grid .cards-container').forEach(container => {
-                new Sortable(container, {
+                // Destroy existing Sortable instance if it exists
+                 if (container.sortableInstance) {
+                     container.sortableInstance.destroy();
+                 }
+                 container.sortableInstance = new Sortable(container, { // Store instance
                     group: 'calendar-cards',
                     animation: 150,
                     onEnd: (evt) => {
                         const cardId = evt.item.dataset.cardId;
-                        const newDate = evt.to.closest('[data-date]').dataset.date;
-                        const dataSource = this.elements.calendar.calendarDataSource.value || 'createdAt';
-                        
+                        const dateEl = evt.to.closest('[data-date]');
+                         // Add checks for elements and dataset
+                        if (!dateEl || !dateEl.dataset.date) return;
+
+                        const newDate = dateEl.dataset.date;
+                        const dataSource = this.elements.calendar.calendarDataSource.value || 'nextContactDate';
+
                         const board = this.state.boards[0];
                         const cardIndex = board.cards.findIndex(c => c.id === cardId);
 
                         if(cardIndex !== -1 && newDate) {
                             const oldDate = board.cards[cardIndex][dataSource];
                             board.cards[cardIndex][dataSource] = dayjs(newDate).toISOString(); // Salva na data correta
-                            
+
                             // Adiciona na timeline
                             const eventType = dataSource === 'nextContactDate' ? 'rescheduled' : 'edited';
                             const fieldName = dataSource === 'nextContactDate' ? 'Próximo Contato' : 'Data de Criação';
 
                             board.cards[cardIndex].timeline.push({ t: eventType, from: oldDate, to: newDate, at: new Date().toISOString(), field: fieldName });
-                            
+
                             // ATUALIZADO: Chamar API PUT
                             this.apiPutLeads(`Reagendamento de lead: ${board.cards[cardIndex].name}`);
                             this.showToast(`Lead ${board.cards[cardIndex].name} movido para ${dayjs(newDate).format('DD/MM')}`, 'info');
@@ -1376,7 +1418,7 @@
                 });
             });
         },
-        
+
         // --- FILTERS & SORTING ---
         renderFilterPopup() {
             const { filters, sortBy } = this.state.viewState;
@@ -1385,53 +1427,53 @@
             const allLabels = board.availableLabels;
 
             this.elements.filterPopup.innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-secondary mb-2">Ordenar por</h4>
-                        <select id="sort-select" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
-                            <option value="default" ${sortBy === 'default' ? 'selected' : ''}>Padrão</option>
-                            <option value="value" ${sortBy === 'value' ? 'selected' : ''}>Maior Valor</option>
-                            <option value="createdAt" ${sortBy === 'createdAt' ? 'selected' : ''}>Data de Criação</option>
-                            <option value="name" ${sortBy === 'name' ? 'selected' : ''}>Ordem Alfabética</option>
-                        </select>
-                    </div>
-                    <div class="border-t border-border"></div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-secondary mb-2">Data de Alteração</h4>
-                        <input id="filter-date-range" type="text" placeholder="Selecione um intervalo" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
-                    </div>
-                    <div class="border-t border-border"></div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-secondary mb-2">Origem</h4>
-                        <div id="origin-filters" class="space-y-1">
-                            ${allOrigins.map(o => `
-                                <label class="flex items-center space-x-2 cursor-pointer">
-                                    <input type="checkbox" value="${o}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.origin.includes(o) ? 'checked' : ''}>
-                                    <span class="text-sm">${o}</span>
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-                     <div class="border-t border-border"></div>
-                     <div>
-                        <h4 class="text-sm font-semibold text-secondary mb-2">Etiquetas</h4>
-                        <div id="label-filters" class="space-y-1 max-h-32 overflow-y-auto">
-                           ${allLabels.map(l => `
-                                <label class="flex items-center space-x-2 cursor-pointer">
-                                    <input type="checkbox" value="${l}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.labels.includes(l) ? 'checked' : ''}>
-                                    <span class="text-sm">${l}</span>
-                                </label>
-                            `).join('')}
-                        </div>
-                     </div>
-                    <div class="border-t border-border pt-4 flex justify-between items-center">
-                        <button id="clear-filters-btn" class="text-sm text-secondary hover:text-text">Limpar Filtros</button>
-                    </div>
-                </div>
+              <div class="space-y-4">
+                  <div>
+                      <h4 class="text-sm font-semibold text-secondary mb-2">Ordenar por</h4>
+                      <select id="sort-select" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
+                          <option value="default" ${sortBy === 'default' ? 'selected' : ''}>Padrão</option>
+                          <option value="value" ${sortBy === 'value' ? 'selected' : ''}>Maior Valor</option>
+                          <option value="createdAt" ${sortBy === 'createdAt' ? 'selected' : ''}>Data de Criação</option>
+                          <option value="name" ${sortBy === 'name' ? 'selected' : ''}>Ordem Alfabética</option>
+                      </select>
+                  </div>
+                  <div class="border-t border-border"></div>
+                  <div>
+                      <h4 class="text-sm font-semibold text-secondary mb-2">Data de Alteração</h4>
+                      <input id="filter-date-range" type="text" placeholder="Selecione um intervalo" class="w-full bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
+                  </div>
+                  <div class="border-t border-border"></div>
+                  <div>
+                      <h4 class="text-sm font-semibold text-secondary mb-2">Origem</h4>
+                      <div id="origin-filters" class="space-y-1">
+                          ${allOrigins.map(o => `
+                              <label class="flex items-center space-x-2 cursor-pointer">
+                                  <input type="checkbox" value="${o}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.origin.includes(o) ? 'checked' : ''}>
+                                  <span class="text-sm">${o}</span>
+                              </label>
+                          `).join('')}
+                      </div>
+                  </div>
+                   <div class="border-t border-border"></div>
+                   <div>
+                      <h4 class="text-sm font-semibold text-secondary mb-2">Etiquetas</h4>
+                      <div id="label-filters" class="space-y-1 max-h-32 overflow-y-auto">
+                         ${allLabels.map(l => `
+                              <label class="flex items-center space-x-2 cursor-pointer">
+                                  <input type="checkbox" value="${l}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.labels.includes(l) ? 'checked' : ''}>
+                                  <span class="text-sm">${l}</span>
+                              </label>
+                          `).join('')}
+                      </div>
+                   </div>
+                  <div class="border-t border-border pt-4 flex justify-between items-center">
+                      <button id="clear-filters-btn" class="text-sm text-secondary hover:text-text">Limpar Filtros</button>
+                  </div>
+              </div>
             `;
             this.initFilterDatepicker();
         },
-        
+
         initFilterDatepicker() {
             if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
             const dateInput = document.getElementById('filter-date-range'); // Define here
@@ -1452,13 +1494,25 @@
                 },
                 setup: (picker) => {
                     picker.on('selected', (date1, date2) => {
-                        this.state.viewState.filters.dateRange = { start: date1.dateInstance, end: date2.dateInstance };
-                        // ATUALIZADO: Chamar API PUT
-                        this.apiPutLeads('Alteração de filtro de data');
+                        // Ensure dates are valid before setting state
+                        if (date1 && date2) {
+                          this.state.viewState.filters.dateRange = { start: date1.dateInstance, end: date2.dateInstance };
+                          // ATUALIZADO: Chamar API PUT
+                          this.apiPutLeads('Alteração de filtro de data');
+                        } else {
+                           // Handle case where selection might be cleared or invalid
+                           this.state.viewState.filters.dateRange = { start: null, end: null };
+                           this.apiPutLeads('Limpeza de filtro de data');
+                        }
                     });
+                     // Add event listener for clearing
+                     picker.on('clear:selection', () => {
+                         this.state.viewState.filters.dateRange = { start: null, end: null };
+                         this.apiPutLeads('Limpeza de filtro de data');
+                     });
                 }
             });
-            
+
             const { dateRange } = this.state.viewState.filters;
             if(dateRange && dateRange.start && dateRange.end) {
                 this.config.activeLitepicker.setDateRange(dateRange.start, dateRange.end);
@@ -1492,42 +1546,46 @@
         showModal(config) {
             const { title, content, onConfirm, confirmText = 'Confirmar', confirmClass = 'bg-red-600 hover:bg-red-700' } = config;
             this.elements.modalBox.innerHTML = `
-                <h3 class="text-xl font-bold mb-2">${title}</h3>
-                <div class="text-secondary mb-6">${content}</div>
-                <div class="flex justify-end gap-3">
-                    <button id="modal-cancel" class="h-9 px-4 rounded-lg text-sm font-semibold bg-panel border border-border hover:bg-hover">Cancelar</button>
-                    ${onConfirm ? `<button id="modal-confirm" class="h-9 px-4 rounded-lg text-sm font-semibold text-white ${confirmClass}">${confirmText}</button>` : ''}
-                </div>
+              <h3 class="text-xl font-bold mb-2">${title}</h3>
+              <div class="text-secondary mb-6">${content}</div>
+              <div class="flex justify-end gap-3">
+                  <button id="modal-cancel" class="h-9 px-4 rounded-lg text-sm font-semibold bg-panel border border-border hover:bg-hover">Cancelar</button>
+                  ${onConfirm ? `<button id="modal-confirm" class="h-9 px-4 rounded-lg text-sm font-semibold text-white ${confirmClass}">${confirmText}</button>` : ''}
+              </div>
             `;
             this.elements.modalOverlay.classList.remove('hidden');
+             // Force reflow to ensure transition works
+            void this.elements.modalOverlay.offsetWidth;
             this.elements.modalOverlay.style.opacity = 1;
             this.elements.modalBox.style.transform = 'scale(1)';
-            
+
             const confirmBtn = document.getElementById('modal-confirm');
             const cancelBtn = document.getElementById('modal-cancel');
-            
+
             const closeModal = () => {
                 this.elements.modalOverlay.style.opacity = 0;
                 this.elements.modalBox.style.transform = 'scale(0.95)';
                 setTimeout(() => this.elements.modalOverlay.classList.add('hidden'), 300);
             };
-            
-            if(onConfirm) {
+
+            if(onConfirm && confirmBtn) { // Add null check for confirmBtn
                 confirmBtn.onclick = () => {
                     onConfirm();
                     closeModal();
                 };
             }
-            
-            cancelBtn.onclick = closeModal;
+
+            if(cancelBtn) { // Add null check for cancelBtn
+             cancelBtn.onclick = closeModal;
+            }
             this.elements.modalOverlay.onclick = (e) => {
                 if(e.target === this.elements.modalOverlay) closeModal();
             }
         },
 
-        // NOVO: Modal de Logs
+        // Modal de Logs
         showLogsModal() {
-            const logsHtml = this.logs.length > 0 
+            const logsHtml = this.logs.length > 0
                 ? [...this.logs].reverse().map(log => {
                     const time = dayjs(log.time).format('HH:mm:ss');
                     const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
@@ -1539,9 +1597,9 @@
                             </div>`;
                 }).join('')
                 : '<p class="text-secondary">Nenhum log registrado.</p>';
-            
+
             const content = `<div id="logs-content-area" class="w-full h-80 overflow-y-auto bg-base p-3 rounded-lg border border-border space-y-2">${logsHtml}</div>`;
-            
+
             this.showModal({
                 title: 'Logs do Sistema',
                 content: content,
@@ -1556,11 +1614,11 @@
             lucide.createIcons();
         },
 
-        // NOVO: Renderiza logs no modal se estiver aberto
+        // Renderiza logs no modal se estiver aberto
         renderLogsInModal() {
             const modalArea = document.getElementById('logs-content-area');
-            if (modalArea) {
-                 const logsHtml = this.logs.length > 0 
+            if (modalArea && !this.elements.modalOverlay.classList.contains('hidden')) { // Check if modal is open
+                 const logsHtml = this.logs.length > 0
                     ? [...this.logs].reverse().map(log => {
                         const time = dayjs(log.time).format('HH:mm:ss');
                         const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
@@ -1576,41 +1634,41 @@
                 lucide.createIcons();
             }
         },
-        
-        // MUDANÇA: Função agora cria o lead e redireciona
+
+        // Função agora cria o lead e redireciona
         createNewLeadAndRedirect(listId = 'novo') {
-            const newCard = { 
-                id: this.uid(), 
-                listId, 
-                name: 'Novo Lead', 
+            const newCard = {
+                id: this.uid(),
+                listId,
+                name: 'Novo Lead',
                 sobrenome: '',
-                company: '', 
-                value: 0, 
-                email: '', 
-                phone: '', 
-                origin: 'Manual', 
-                priority: 'media', 
-                labels: [], 
-                members: ['AC'], 
-                createdAt: new Date().toISOString(), 
-                dueDate: null, 
-                nextContactDate: null, // NOVO
-                checklist: [], 
+                company: '',
+                value: 0,
+                email: '',
+                phone: '',
+                origin: 'Manual',
+                priority: 'media',
+                labels: [],
+                members: ['AC'],
+                createdAt: new Date().toISOString(),
+                dueDate: null,
+                nextContactDate: null,
+                checklist: [], // Keep checklist array, even if empty
                 timeline: [{ t: "created", at: new Date().toISOString() }],
                 notes: "",
-                attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}], // NOVO
+                attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}],
                 cidade: "",
                 pais: "Brazil",
                 biografia: ""
             };
             this.state.boards[0].cards.push(newCard);
             this.state.contacts.push({...newCard});
-            
+
             // ATUALIZADO: Chamar API PUT
             this.apiPutLeads('Criação de novo lead');
             this.showToast('Novo lead criado. Preencha os detalhes.', 'success');
-            
-            // MUDANÇA: Redireciona para a página de detalhes
+
+            // Redireciona para a página de detalhes
             window.location.hash = `#/contacts/${newCard.id}`;
         },
 
@@ -1625,15 +1683,15 @@
                     const board = this.state.boards[0];
                     const newList = { id: name.toLowerCase().replace(/\s/g, '-'), name: name, order: board.lists.length };
                     board.lists.push(newList);
-                    
+
                     // ATUALIZADO: Chamar API PUT
                     this.apiPutLeads('Criação de nova etapa');
                     this.showToast('Nova etapa criada!', 'success');
                 }
             });
         },
-        
-        // MUDANÇA: Adicionada lógica de "Canal Preferido"
+
+        // Adicionada lógica de "Canal Preferido"
         showSendMessageModal(card) {
             const preferredChannelAttr = card.attributes.find(a => a.key === 'Canal Preferido');
             const preferredChannel = preferredChannelAttr ? preferredChannelAttr.value : null;
@@ -1648,20 +1706,20 @@
                 this.showToast(`Abrindo Instagram para ${card.name}`, 'info');
                 return; // Pula o modal
             }
-            
+
             // Lógica original do modal
             const content = `
-                <p class="text-secondary mb-4">Para qual canal você deseja enviar uma mensagem para ${card.name}?</p>
-                <div class="space-y-3">
-                    <a href="https://wa.me/${card.phone || ''}" target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
-                        <i data-lucide="message-circle" class="h-5 w-5 text-green-500"></i>
-                        <span>WhatsApp</span>
-                    </a>
-                    <a href="https://ig.me/m/USUARIO_INSTA_MOCK" target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
-                        <i data-lucide="instagram" class="h-5 w-5 text-pink-500"></i>
-                        <span>Instagram DM</span>
-                    </a>
-                </div>
+              <p class="text-secondary mb-4">Para qual canal você deseja enviar uma mensagem para ${card.name}?</p>
+              <div class="space-y-3">
+                  <a href="https://wa.me/${card.phone || ''}" target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
+                      <i data-lucide="message-circle" class="h-5 w-5 text-green-500"></i>
+                      <span>WhatsApp</span>
+                  </a>
+                  <a href="https://ig.me/m/USUARIO_INSTA_MOCK" target="_blank" class="flex items-center gap-3 p-3 bg-base rounded-lg hover:bg-hover">
+                      <i data-lucide="instagram" class="h-5 w-5 text-pink-500"></i>
+                      <span>Instagram DM</span>
+                  </a>
+              </div>
             `;
             this.showModal({
                 title: 'Enviar Mensagem',
@@ -1675,11 +1733,11 @@
         attachEventListeners() {
           this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
           this.elements.drawerOverlay.addEventListener('click', () => this.closeDrawer());
-          // MUDANÇA: Chama a nova função de criação/redirecionamento
+          // Chama a nova função de criação/redirecionamento
           this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.createNewLeadAndRedirect());
-          this.elements.refreshDataBtn.addEventListener('click', () => this.apiGetLeads('Atualização manual')); // NOVO
-          this.elements.showLogsBtn.addEventListener('click', () => this.showLogsModal()); // NOVO
-          
+          this.elements.refreshDataBtn.addEventListener('click', () => this.apiGetLeads('Atualização manual'));
+          this.elements.showLogsBtn.addEventListener('click', () => this.showLogsModal());
+
            // Main View Toggle (Board/List)
            this.elements.mainViewToggle.addEventListener('click', () => {
              const currentView = this.state.viewState.activeMainView;
@@ -1692,6 +1750,7 @@
                  this.config.previousMainView = this.state.viewState.activeMainView;
                  this.apiPutLeads('Troca de visão (kanban/lista)'); // Salva a troca de visão
              }
+             // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
            });
 
            // Calendar View Toggle
@@ -1706,8 +1765,9 @@
                  this.state.viewState.activeMainView = 'calendar';
              }
              this.apiPutLeads('Troca de visão (calendário)'); // Salva a troca de visão
+              // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
            });
-          
+
           this.elements.filterBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               this.elements.filterPopup.classList.toggle('hidden');
@@ -1728,8 +1788,9 @@
                }
                // ATUALIZADO: Chamar API PUT
                this.apiPutLeads('Alteração de filtro/ordem');
+               // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
           });
-          
+
           this.elements.filterPopup.addEventListener('click', (e) => {
               e.stopPropagation(); // Prevents popup from closing
               if(e.target.id === 'clear-filters-btn') {
@@ -1739,6 +1800,7 @@
                   // ATUALIZADO: Chamar API PUT
                   this.apiPutLeads('Limpeza de filtros');
                   this.renderFilterPopup(); // Re-render o popup com valores limpos
+                   // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
               }
           });
 
@@ -1752,7 +1814,7 @@
               if (e.target.closest('#close-drawer')) this.closeDrawer();
               const field = e.target.closest('.editable-field p');
               if (field) this.makeFieldEditable(field.parentElement);
-              
+
               // Label Logic
               const addLabelBtn = e.target.closest('#add-label-btn');
               if(addLabelBtn) document.getElementById('label-dropdown').classList.toggle('hidden');
@@ -1760,17 +1822,21 @@
               if(addLabelOption) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                  card.labels.push(addLabelOption.dataset.label);
-                  this.updateCard(cardId, { labels: card.labels }); // Dispara API
+                   if (card) { // Add null check
+                     card.labels.push(addLabelOption.dataset.label);
+                     this.updateCard(cardId, { labels: card.labels }); // Dispara API
+                   }
               }
               const removeLabelBtn = e.target.closest('.remove-label-btn');
               if(removeLabelBtn) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                  const newLabels = card.labels.filter(l => l !== removeLabelBtn.dataset.label);
-                  this.updateCard(cardId, { labels: newLabels }); // Dispara API
+                   if (card) { // Add null check
+                     const newLabels = card.labels.filter(l => l !== removeLabelBtn.dataset.label);
+                     this.updateCard(cardId, { labels: newLabels }); // Dispara API
+                   }
               }
-              
+
               // Member Logic
               const addMemberBtn = e.target.closest('#add-member-btn');
               if(addMemberBtn) document.getElementById('member-dropdown').classList.toggle('hidden');
@@ -1778,60 +1844,66 @@
               if(addMemberOption) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                  card.members.push(addMemberOption.dataset.memberId);
-                  this.updateCard(cardId, { members: card.members }); // Dispara API
+                   if (card) { // Add null check
+                     card.members.push(addMemberOption.dataset.memberId);
+                     this.updateCard(cardId, { members: card.members }); // Dispara API
+                   }
               }
               const removeMemberBtn = e.target.closest('.remove-member-btn');
               if(removeMemberBtn) {
                   const cardId = this.elements.cardDrawer.dataset.cardId;
                   const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                  const newMembers = card.members.filter(m => m !== removeMemberBtn.dataset.memberId);
-                  this.updateCard(cardId, { members: newMembers }); // Dispara API
+                   if (card) { // Add null check
+                     const newMembers = card.members.filter(m => m !== removeMemberBtn.dataset.memberId);
+                     this.updateCard(cardId, { members: newMembers }); // Dispara API
+                   }
               }
-
-              // MUDANÇA: Botão de delete foi movido do drawer para o card
           });
 
           this.elements.viewsContainer.addEventListener('click', (e) => {
               const cardElement = e.target.closest('.kanban-card, .list-view-row'); // Added list-view-row
               const addLeadBtn = e.target.closest('.add-lead-in-list');
               const sendMessageBtn = e.target.closest('.card-send-message');
-              const deleteBtn = e.target.closest('.card-delete-btn'); // NOVO
+              const deleteBtn = e.target.closest('.card-delete-btn');
 
               if (sendMessageBtn) {
                   e.stopPropagation();
-                  const cardId = sendMessageBtn.closest('[data-card-id]').dataset.cardId; // Fix para pegar o ID certo
-                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                  if (card) this.showSendMessageModal(card);
-              } else if (deleteBtn) { // NOVO
+                  const cardId = sendMessageBtn.closest('[data-card-id]')?.dataset.cardId; // Optional chaining
+                  if (cardId) {
+                      const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                      if (card) this.showSendMessageModal(card);
+                  }
+              } else if (deleteBtn) {
                   e.stopPropagation();
                   const cardId = deleteBtn.dataset.cardId;
-                  this.showModal({
-                      title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
-                      confirmText: 'Excluir',
-                      confirmClass: 'bg-red-600 hover:bg-red-700',
-                      onConfirm: () => {
-                          this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
-                          this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
-                          this.apiPutLeads('Exclusão de lead');
-                          this.showToast('Lead excluído.', 'info');
-                      }
-                  });
-              } else if (cardElement) {
+                   if (cardId) { // Add check
+                     this.showModal({
+                         title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
+                         confirmText: 'Excluir',
+                         confirmClass: 'bg-red-600 hover:bg-red-700',
+                         onConfirm: () => {
+                             this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
+                             this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
+                             this.apiPutLeads('Exclusão de lead');
+                             this.showToast('Lead excluído.', 'info');
+                         }
+                     });
+                   }
+              } else if (cardElement && cardElement.dataset.cardId) { // Add check for dataset.cardId
                   if(cardElement.closest('#calendar-grid')){
-                       // MUDANÇA: Abre a página de detalhes em vez do drawer
+                       // Abre a página de detalhes
                        window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
                   } else {
                        // Navigate to contact detail from Kanban card OR List view row
                        window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
                   }
-              } else if (addLeadBtn) {
-                  // MUDANÇA: Chama a nova função de criação/redirecionamento
+              } else if (addLeadBtn && addLeadBtn.dataset.listId) { // Add check for dataset.listId
+                  // Chama a nova função de criação/redirecionamento
                   this.createNewLeadAndRedirect(addLeadBtn.dataset.listId);
               }
           });
-          
-          this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanView());
+
+          this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanView()); // Re-render on search input
           document.addEventListener('keydown', (e) => {
               if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
                   e.preventDefault();
@@ -1843,22 +1915,24 @@
               }
           });
 
-          // MUDANÇA: Listener para o seletor de data do calendário
-          this.elements.calendar.calendarDataSource.addEventListener('change', () => {
-              this.renderCalendar(); // Apenas re-renderiza o calendário
+          // Listener para o seletor de data do calendário
+          this.elements.calendar.calendarDataSource.addEventListener('change', (e) => {
+             this.state.viewState.calendarDataSource = e.target.value; // Save selection to state
+             this.apiPutLeads('Mudança de fonte de dados do calendário'); // Save state change (optional but good practice)
+             // No need to call renderCalendar() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
           });
 
           this.elements.calendar.prevBtn.addEventListener('click', () => {
               this.config.currentDate = this.config.currentDate.subtract(1, 'month');
-              this.renderCalendar();
+              this.renderCalendar(); // Only re-render calendar part
           });
           this.elements.calendar.nextBtn.addEventListener('click', () => {
               this.config.currentDate = this.config.currentDate.add(1, 'month');
-              this.renderCalendar();
+              this.renderCalendar(); // Only re-render calendar part
           });
           this.elements.calendar.todayBtn.addEventListener('click', () => {
               this.config.currentDate = dayjs();
-              this.renderCalendar();
+              this.renderCalendar(); // Only re-render calendar part
           });
         }
       };
