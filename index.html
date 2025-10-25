@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
 
-  <!-- Lucide Icons (fixed version and defer) -->
+  <!-- Lucide Icons (fixed version) -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.309.0/dist/umd/lucide.min.js"></script>
 
   <!-- SortableJS for Drag & Drop (fixed version) -->
@@ -110,6 +110,10 @@
        #logs-content-area {
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
        }
+       /* List Actions Dropdown */
+       .list-actions-dropdown {
+         @apply absolute top-full right-0 mt-1 w-40 bg-panel border border-border rounded-lg shadow-xl p-2 z-20;
+       }
     }
   </style>
   <script>
@@ -151,7 +155,7 @@
         <!-- Navigation items will be injected here by JS -->
       </nav>
 
-      <!-- Botão de Logs -->
+      <!-- Logs Button -->
       <div class="p-4 border-t border-border">
         <button id="show-logs-btn" class="w-full flex items-center justify-start px-3 py-2 rounded-lg text-secondary hover:bg-hover hover:text-text font-medium transition-colors">
             <i data-lucide="terminal" class="h-5 w-5 mr-3"></i>
@@ -172,31 +176,29 @@
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- REMOVED HEADER BLOCK -->
-
       <!-- Views Container -->
       <main id="views-container" class="flex-1 overflow-auto p-6">
 
         <!-- Kanban View (Now contains Board, List and Calendar) -->
         <div id="kanban-view" class="view hidden h-full flex flex-col">
-          <!-- MUDANÇA: Cabeçalho da visão agora inclui a pesquisa e os botões do header anterior -->
+          <!-- View header now includes search and previous header buttons -->
           <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-4"> <!-- Wrapper para Título e Pesquisa -->
+            <div class="flex items-center space-x-4"> <!-- Wrapper for Title and Search -->
               <div>
-                <!-- Título da Visão agora aqui -->
+                <!-- View Title -->
                 <h2 id="view-title" class="text-2xl font-bold text-text mb-1">Kanban de Leads</h2>
                 <p class="text-sm text-secondary">Gerencie seus leads por etapas do funil.</p>
               </div>
-              <!-- Pesquisa -->
+              <!-- Search -->
               <div class="relative">
                   <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary"></i>
                   <input id="global-search" type="text" placeholder="Buscar leads, empresas... (Pressione /)" class="w-72 bg-base border border-border rounded-lg pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none transition-all">
               </div>
             </div>
-            <!-- Botões movidos para cá -->
+            <!-- Buttons moved here -->
             <div class="flex items-center space-x-3 relative">
                  <button id="refresh-data-btn" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Atualizar dados">
-                    <i data-lucide="refresh-cw" class="h-5 w-5"></i>
+                   <i data-lucide="refresh-cw" class="h-5 w-5"></i>
                  </button>
                  <button id="theme-toggle" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors" title="Alternar tema">
                      <i data-lucide="sun" class="h-5 w-5 block dark:hidden"></i>
@@ -224,7 +226,7 @@
           </div>
 
           <!-- Kanban Board Wrapper -->
-          <!-- ATUALIZADO: items-stretch faz as colunas esticarem -->
+          <!-- items-stretch makes columns stretch -->
           <div id="kanban-board-wrapper" class="flex-1 overflow-hidden -mx-6">
             <div id="kanban-board" class="flex gap-6 overflow-x-auto pb-4 px-6 items-stretch h-full">
               <!-- Kanban lists will be injected here -->
@@ -260,9 +262,9 @@
                  <h3 id="calendar-title" class="text-xl font-bold text-text text-center w-48"></h3>
                  <button id="calendar-next" class="h-9 w-9 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text transition-colors"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
                </div>
-               <!-- MUDANÇA: Adicionado seletor de data e botão 'Hoje' -->
+               <!-- Added date selector and 'Today' button -->
                <div class="flex items-center gap-2">
-                   <!-- MUDANÇA: Default para Próximo Contato -->
+                   <!-- Default to Next Contact -->
                    <select id="calendar-data-source" class="h-9 bg-panel border border-border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none">
                        <option value="createdAt">Data de Criação</option>
                        <option value="nextContactDate" selected>Próximo Contato</option>
@@ -297,11 +299,14 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-[100] space-y-3"></div>
 
     <!-- Modal Container -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300 flex"> <!-- FIX: Added 'flex' -->
-        <div id="modal-box" class="bg-panel rounded-2xl shadow-xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300">
-            <!-- Modal content here -->
-        </div>
+    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center transition-opacity duration-300 flex"> <!-- Fixed: Added 'flex' -->
+      <div id="modal-box" class="bg-panel rounded-2xl shadow-xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300">
+        <!-- Modal content here -->
+      </div>
     </div>
+
+    <!-- Container for list actions dropdown (to avoid overflow issues) -->
+    <div id="list-actions-container" class="absolute z-30"></div>
 
   </div>
 
@@ -319,7 +324,7 @@
       window.App = {
         // --- STATE & CONFIG ---
         state: {},
-        logs: [], // NOVO: Para logs da API
+        logs: [], // For API logs
         elements: {
           app: document.getElementById('app'),
           sidebarNav: document.getElementById('sidebar-nav'),
@@ -355,6 +360,7 @@
               todayBtn: document.getElementById('calendar-today'),
               calendarDataSource: document.getElementById('calendar-data-source'),
           },
+          listActionsContainer: document.getElementById('list-actions-container'), // New container
         },
         config: {
           routes: [
@@ -367,6 +373,7 @@
           currentDate: dayjs(),
           activeLitepicker: null,
           previousMainView: 'board', // To remember the view when switching to calendar
+          openListActionsDropdown: null, // Track which dropdown is open
         },
 
         // --- INITIALIZATION ---
@@ -430,22 +437,24 @@
           this.state.viewState = this.state.viewState || {
             filters: { origin: [], labels: [], dateRange: { start: null, end: null } },
             sortBy: 'default',
-            activeMainView: 'board' // 'board' or 'list' or 'calendar'
+            activeMainView: 'board', // 'board' or 'list' or 'calendar'
+            calendarDataSource: 'nextContactDate' // Ensure default exists
           };
           this.config.previousMainView = ['board', 'list'].includes(this.state.viewState.activeMainView) ? this.state.viewState.activeMainView : 'board';
 
-          // MUDANÇA: Make sure calendar default reflects in state if not explicitly set
-          // This ensures the first load after seeding defaults correctly visually
+          // Make sure calendar default reflects in state if not explicitly set
            if (!this.state.viewState.calendarDataSource) {
              this.state.viewState.calendarDataSource = 'nextContactDate';
            }
-           if (this.elements.calendar.calendarDataSource) { // Ensure element exists
+           // Update the dropdown visually if the element exists
+           if (this.elements.calendar.calendarDataSource) {
              this.elements.calendar.calendarDataSource.value = this.state.viewState.calendarDataSource;
            }
         },
 
+
         saveState() {
-          // Esta é a única função que escreve no localStorage
+          // This is the only function that writes to localStorage
           localStorage.setItem('crmCentral', JSON.stringify(this.state));
         },
 
@@ -468,7 +477,7 @@
                     this.state.contacts[contactIndex] = { ...this.state.contacts[contactIndex], ...updates };
                 }
 
-                // ATUALIZADO: Chamar API PUT
+                // Call API PUT
                 this.apiPutLeads(`Atualização de card: ${Object.keys(updates).join(', ')}`);
 
                 return board.cards[cardIndex];
@@ -490,13 +499,12 @@
                 {id:"lead_8", listId:"proposta", name:"Juliana", sobrenome:"Costa", company:"Agência Criativa", email:"juliana@agenciacriativa.com", phone:"41918248614", origin:"Orgânico", value:30000, priority:"media", labels:["Marketing"], members:["BL"], createdAt:today.startOf('month').add(11, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
                 {id:"lead_9", listId:"ganhou", name:"Sandra", sobrenome:"Rocha", company:"Construtora Sólida", email:"sandra@construtorasolida.com", phone:"51998234512", origin:"Indicação", value:250000, priority:"alta", labels:["Imobiliário"], members:["CS"], createdAt:today.subtract(1, 'month').add(2, 'day').toISOString(), dueDate: null, nextContactDate: null, attributes: [{id: this.uid(), key: "Canal Preferido", value: ""}]},
               ].map(c => ({...c,
-                // REMOVED CHECKLIST SEEDING
                 timeline:[{t:"created",at:c.createdAt}],
                 notes: "",
                 cidade: "",
                 pais: "Brazil",
                 biografia: "",
-                // Garante que 'attributes' e 'nextContactDate' existam
+                // Ensure 'attributes' and 'nextContactDate' exist
                 attributes: c.attributes || [{id: this.uid(), key: "Canal Preferido", value: ""}],
                 nextContactDate: c.nextContactDate || null
               }));
@@ -507,11 +515,11 @@
               id: "leads-br",
               name: "Leads BR",
               availableLabels: ["Quente", "Urgente", "Novo", "Corporativo", "Grande Porte", "Pequeno", "E-commerce", "Médio Porte", "Educação", "Logística", "Marketing", "Imobiliário"],
-                availableMembers: [
-                    { id: 'AC', name: 'Ana Costa', avatar: 'https://i.pravatar.cc/150?u=AC' },
-                    { id: 'BL', name: 'Bruno Lima', avatar: 'https://i.pravatar.cc/150?u=BL' },
-                    { id: 'CS', name: 'Carla Souza', avatar: 'https://i.pravatar.cc/150?u=CS' }
-                ],
+               availableMembers: [
+                   { id: 'AC', name: 'Ana Costa', avatar: 'https://i.pravatar.cc/150?u=AC' },
+                   { id: 'BL', name: 'Bruno Lima', avatar: 'https://i.pravatar.cc/150?u=BL' },
+                   { id: 'CS', name: 'Carla Souza', avatar: 'https://i.pravatar.cc/150?u=CS' }
+               ],
               lists: [
                 {id:"novo",name:"Novo",order:0},
                 {id:"em-contato",name:"Em Contato",order:1},
@@ -525,19 +533,18 @@
             }],
             contacts: cards.map(c => ({...c})),
             automations: [
-              // REMOVED checklist related automation
               {when:"move_to", to:"ganhou", do:"toast", payload:{text:"Lead fechado com sucesso!"}, active: true},
               {when:"create_with_origin", origin:"Meta Ads", do:"assign", payload:{member:"AC"}, active: true}
             ],
             viewState: {
-                filters: { origin: [], labels: [], dateRange: { start: null, end: null } },
-                sortBy: 'default',
-                activeMainView: 'board',
-                calendarDataSource: 'nextContactDate' // MUDANÇA: Define o default do calendário aqui
+               filters: { origin: [], labels: [], dateRange: { start: null, end: null } },
+               sortBy: 'default',
+               activeMainView: 'board',
+               calendarDataSource: 'nextContactDate' // Set calendar default here
             }
           };
 
-          // ATUALIZADO: Chamar API PUT
+          // Call API PUT
           this.apiPutLeads('Estado inicial (seed)');
         },
 
@@ -561,11 +568,12 @@
           const hash = window.location.hash || '#/kanban';
           this.closeDrawer();
           this.elements.filterPopup.classList.add('hidden');
+           this.hideListActionsDropdown(); // Close dropdown on route change
           document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
           let currentRoute = this.config.routes.find(r => hash.startsWith(r.hash));
           let contactId = null;
 
-          // Lógica para pegar o ID do contato da URL
+          // Logic to get contact ID from URL
           if (currentRoute && currentRoute.hash === '#/contacts' && hash.includes('/')) {
             contactId = hash.split('/')[2];
           }
@@ -574,22 +582,21 @@
             const viewElement = document.getElementById(currentRoute.view);
             if (viewElement) {
               viewElement.classList.remove('hidden');
-              // Título dinâmico para página de contato - Agora no Kanban View header
-              // this.elements.viewTitle.textContent = contactId ? 'Detalhe do Contato' : currentRoute.title; // REMOVED THIS LINE
+              // Dynamic title for contact page - Now in Kanban View header
 
               if(currentRoute.view === 'kanban-view') {
                 this.renderKanbanView(); // Renders board, list, or calendar based on state
                 this.renderFilterPopup();
-                 // MUDANÇA: Seta o título H2 corretamente ao carregar a view do kanban
-                document.getElementById('view-title').textContent = 'Kanban de Leads';
+                 // Set H2 title correctly when loading kanban view
+                 document.getElementById('view-title').textContent = 'Kanban de Leads';
               }
-              // Renderiza a página de contato se o ID existir
+              // Render contact page if ID exists
               if(currentRoute.view === 'contacts-view') {
-                  this.renderContactDetail(contactId);
-                   // MUDANÇA: Seta o título H2 corretamente ao carregar a view de contatos
+                 this.renderContactDetail(contactId);
+                   // Set H2 title correctly when loading contacts view
                    document.getElementById('view-title').textContent = contactId ? 'Detalhe do Contato' : 'Contatos';
               }
-               // MUDANÇA: Handle other views' titles
+               // Handle other views' titles
                if (!['kanban-view', 'contacts-view'].includes(currentRoute.view)) {
                  document.getElementById('view-title').textContent = currentRoute.title;
                }
@@ -599,11 +606,15 @@
                 a.classList.toggle('bg-hover', a.getAttribute('href').startsWith(currentRoute.hash));
                 a.classList.toggle('text-text', a.getAttribute('href').startsWith(currentRoute.hash));
               });
+            } else {
+                 console.error(`View element not found for route: ${currentRoute.view}`);
+                 window.location.hash = '#/kanban'; // Fallback
             }
           } else {
              window.location.hash = '#/kanban';
           }
         },
+
 
         // --- AUTOMATION ---
         runAutomations(type, data) {
@@ -625,7 +636,6 @@
           const cardIndex = board.cards.findIndex(c => c.id === card.id);
 
           switch (automation.do) {
-             // REMOVED create_task case
             case 'toast':
               this.showToast(automation.payload.text.replace('{name}', card.name), 'success');
               break;
@@ -638,7 +648,7 @@
                }
               break;
           }
-          // ATUALIZADO: Chamar API PUT
+          // Call API PUT
           this.apiPutLeads(`Automação: ${automation.do}`);
         },
 
@@ -706,10 +716,12 @@
                 const start = dayjs(filters.dateRange.start).startOf('day');
                 const end = dayjs(filters.dateRange.end).endOf('day');
                 processedCards = processedCards.filter(c => {
-                    const lastMod = dayjs(c.timeline[c.timeline.length - 1].at);
-                    return lastMod.isBetween(start, end);
+                    // Check if timeline exists and has entries
+                    const lastMod = c.timeline && c.timeline.length > 0 ? dayjs(c.timeline[c.timeline.length - 1].at) : dayjs(c.createdAt); // Fallback to createdAt if timeline is empty
+                    return lastMod.isBetween(start, end, null, '[]'); // Inclusive check '[]'
                 });
             }
+
 
              // Apply sorting (for list view primarily, Kanban sorts within columns)
             switch(sortBy) {
@@ -733,7 +745,7 @@
                 // Sorting within columns is manual via drag-drop
 
                 return `
-                  <div class="kanban-list w-[320px] flex-shrink-0 bg-base rounded-2xl flex flex-col" data-list-id="${list.id}">
+                  <div class="kanban-list w-[320px] flex-shrink-0 bg-base rounded-2xl flex flex-col relative" data-list-id="${list.id}"> <!-- Added relative positioning -->
                     <div class="p-4 flex items-center justify-between cursor-grab handle">
                       <div class="flex items-center gap-2">
                         <h4 class="font-semibold text-text">${list.name}</h4>
@@ -741,17 +753,17 @@
                       </div>
                       <div class="flex items-center gap-1">
                         <button class="add-lead-in-list h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-list-id="${list.id}"><i data-lucide="plus" class="h-4 w-4"></i></button>
-                        <button class="h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
+                        <!-- List actions button -->
+                        <button class="list-actions-btn h-7 w-7 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-list-id="${list.id}"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button>
                       </div>
                     </div>
-                    <!-- ATUALIZADO: removido max-height, flex-1 faz preencher o espaço -->
                     <div class="list-cards flex-1 px-2 pb-2 space-y-3 overflow-y-auto">
                       ${listCards.map(card => this.getCardHtml(card)).join('')}
                     </div>
-                    <!-- REMOVED bottom add lead button -->
                   </div>
                 `
             }).join('');
+
 
             boardHtml += `
               <div class="w-[320px] flex-shrink-0">
@@ -763,13 +775,14 @@
 
             this.elements.kanbanBoard.innerHTML = boardHtml;
             const addNewListBtn = document.getElementById('add-new-list-btn');
-            if (addNewListBtn) { // Add null check
+            if (addNewListBtn) {
               addNewListBtn.addEventListener('click', () => this.showNewListModal());
             }
 
             lucide.createIcons();
             this.initKanbanSortable();
         },
+
 
         renderListViewContent() {
             const processedCards = this.getProcessedCards(); // Get filtered AND sorted cards
@@ -797,7 +810,8 @@
                       </td>
                        <td class="px-6 py-4 text-secondary">${dayjs(card.createdAt).format('DD/MM/YYYY')}</td>
                       <td class="px-6 py-4 text-right">
-                        <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
+                        <!-- Increased message button size -->
+                        <button class="card-send-message h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
                       </td>
                   </tr>
                 `;
@@ -807,7 +821,6 @@
 
 
         getCardHtml(card) {
-          // REMOVED checklistProgress calculation
           const originColors = { 'Meta Ads': 'bg-blue-500/20 text-blue-400', 'Google Ads': 'bg-green-500/20 text-green-400', 'Orgânico': 'bg-purple-500/20 text-purple-400', 'Indicação': 'bg-yellow-500/20 text-yellow-400', 'Manual': 'bg-gray-500/20 text-gray-400' };
           const board = this.state.boards[0];
 
@@ -819,10 +832,8 @@
                     <p class="text-sm text-secondary">${card.company || 'Sem empresa'}</p>
                 </div>
                 <div class="flex-shrink-0 flex items-center">
-                    <button class="card-send-message h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}" title="Enviar Mensagem"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
-                    <button class="card-delete-btn h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-red-500" data-card-id="${card.id}" title="Excluir Lead">
-                        <i data-lucide="trash-2" class="h-4 w-4"></i>
-                    </button>
+                    <!-- Increased message button size -->
+                    <button class="card-send-message h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-text" data-card-id="${card.id}" title="Enviar Mensagem"><i data-lucide="message-circle" class="h-4 w-4"></i></button>
                 </div>
               </div>
 
@@ -840,7 +851,6 @@
                   <div class="flex items-center gap-4">
                     ${card.dueDate ? `<div class="flex items-center"><i data-lucide="calendar" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.dueDate).format('DD MMM')}</span></div>` : ''}
                     ${card.nextContactDate ? `<div class="flex items-center text-blue-400"><i data-lucide="calendar-check" class="h-4 w-4 mr-1.5"></i><span>${dayjs(card.nextContactDate).format('DD MMM')}</span></div>` : ''}
-                    <!-- REMOVED checklist display -->
                   </div>
                   <div class="flex -space-x-2">
                     ${card.members.map(mId => {
@@ -852,6 +862,7 @@
             </div>
           `;
         },
+
 
         renderCalendar() {
             this.elements.calendar.title.textContent = this.config.currentDate.format('MMMM YYYY');
@@ -866,14 +877,14 @@
             const board = this.state.boards[0];
             let currentDay = startDay;
 
-            // Pega a fonte de dados (data de criação ou próximo contato)
+            // Get data source (creation date or next contact)
             const dataSource = this.elements.calendar.calendarDataSource.value || 'nextContactDate'; // Default to nextContactDate if value is missing
 
             for (let i = 0; i < 35; i++) {
                 const isCurrentMonth = currentDay.isSame(this.config.currentDate, 'month');
                 const isToday = currentDay.isSame(dayjs(), 'day');
 
-                // Filtra os cartões baseado na fonte de dados selecionada
+                // Filter cards based on selected data source
                 const cardsOnDay = board.cards.filter(c => {
                     const dateToCompare = c[dataSource];
                     return dateToCompare && dayjs(dateToCompare).isSame(currentDay, 'day');
@@ -902,7 +913,7 @@
         renderContactDetail(contactId) {
             const viewEl = document.getElementById('contacts-view');
             if (!contactId) {
-                // Página de 'Contatos' padrão se nenhum ID for selecionado
+                // Default 'Contacts' page if no ID selected
                 const allContacts = this.state.contacts;
                 viewEl.innerHTML = `
                   <div class="bg-panel p-8 rounded-2xl">
@@ -932,11 +943,14 @@
 
             const board = this.state.boards[0];
             const timeSinceCreation = dayjs(contact.createdAt).fromNow();
-            const lastActivity = dayjs(contact.timeline[contact.timeline.length - 1].at).fromNow();
+            // Ensure timeline exists and has entries before accessing the last one
+            const lastActivity = contact.timeline && contact.timeline.length > 0
+                ? dayjs(contact.timeline[contact.timeline.length - 1].at).fromNow()
+                : 'nunca'; // Provide a fallback if timeline is empty
 
             viewEl.innerHTML = `
               <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <!-- Coluna da Esquerda (Detalhes) -->
+                  <!-- Left Column (Details) -->
                   <div class="md:col-span-1 space-y-6">
                       <div class="bg-panel p-6 rounded-2xl">
                           <div class="flex flex-col items-center">
@@ -981,7 +995,7 @@
                       </div>
                   </div>
 
-                  <!-- Coluna da Direita (Abas) -->
+                  <!-- Right Column (Tabs) -->
                   <div class="md:col-span-2 bg-panel p-6 rounded-2xl">
                       <div class="flex items-center border-b border-border">
                           <button class="contact-tab-btn px-4 py-3 font-semibold border-b-2 border-brand-blue text-text" data-tab="notas">Notas</button>
@@ -991,7 +1005,7 @@
                       </div>
 
                       <div id="contact-tab-content" class="mt-6">
-                          <!-- Aba de Notas -->
+                          <!-- Notes Tab -->
                           <div id="tab-notas" class="contact-tab-panel">
                               <h4 class="text-sm font-semibold text-secondary mb-2">Adicionar uma nota</h4>
                               <textarea id="contact-note-textarea" class="w-full h-24 bg-base border border-border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="Digite sua nota...">${contact.notes || ''}</textarea>
@@ -1000,7 +1014,7 @@
                               </div>
                           </div>
 
-                          <!-- Nova Aba de Próximo Contato -->
+                          <!-- Next Contact Tab -->
                           <div id="tab-data" class="contact-tab-panel hidden">
                               <h4 class="text-sm font-semibold text-secondary mb-2">Agendar Próximo Contato</h4>
                               <input id="next-contact-datepicker" type="text" placeholder="Selecione uma data..." class="w-full max-w-sm bg-base border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue focus:outline-none" />
@@ -1009,7 +1023,7 @@
                               </div>
                           </div>
 
-                          <!-- Aba de Atributos -->
+                          <!-- Attributes Tab -->
                           <div id="tab-atributos" class="contact-tab-panel hidden">
                               <div id="attributes-list" class="space-y-3">
                                   ${contact.attributes.map(attr => `
@@ -1022,10 +1036,10 @@
                               <button id="add-attribute-btn" class="mt-4 h-9 px-4 rounded-lg text-sm font-semibold bg-base text-secondary hover:bg-hover border border-border"><i data-lucide="plus" class="h-4 w-4 inline-block mr-1"></i> Adicionar atributo</button>
                           </div>
 
-                          <!-- Aba de Histórico -->
+                          <!-- History Tab -->
                           <div id="tab-historico" class="contact-tab-panel hidden">
                               <div class="space-y-6">
-                              ${[...contact.timeline].reverse().map(entry => `
+                              ${[...(contact.timeline || [])].reverse().map(entry => ` <!-- Add check for timeline -->
                                   <div class="flex gap-4">
                                       <div class="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
                                           <i data-lucide="${entry.t === 'created' ? 'plus' : (entry.t === 'moved' ? 'move' : (entry.t === 'rescheduled' ? 'calendar-check' : 'pencil'))}" class="h-5 w-5 text-white"></i>
@@ -1048,18 +1062,19 @@
             this.attachContactDetailListeners(contactId);
         },
 
+
         attachContactDetailListeners(contactId, activeTab = 'notas') {
             const contact = this.state.contacts.find(c => c.id === contactId);
-            if (!contact) return; // Sai se o contato não for encontrado
+            if (!contact) return; // Exit if contact not found
 
             // Function to set the active tab visually and internally
             const setActiveTab = (tabId) => {
                  document.querySelectorAll('.contact-tab-btn').forEach(b => {
-                    const isActive = b.dataset.tab === tabId;
-                    b.classList.toggle('border-brand-blue', isActive);
-                    b.classList.toggle('text-text', isActive);
-                    b.classList.toggle('border-transparent', !isActive);
-                    b.classList.toggle('text-secondary', !isActive);
+                   const isActive = b.dataset.tab === tabId;
+                   b.classList.toggle('border-brand-blue', isActive);
+                   b.classList.toggle('text-text', isActive);
+                   b.classList.toggle('border-transparent', !isActive);
+                   b.classList.toggle('text-secondary', !isActive);
                  });
                  document.querySelectorAll('.contact-tab-panel').forEach(p => p.classList.add('hidden'));
                  const panel = document.getElementById(`tab-${tabId}`);
@@ -1081,7 +1096,7 @@
                     e.preventDefault();
                     const formData = new FormData(e.target);
                     const updates = Object.fromEntries(formData.entries());
-                    updates.phone = (updates.phone || '').replace(/\D/g,''); // Limpa telefone
+                    updates.phone = (updates.phone || '').replace(/\D/g,''); // Clean phone number
                     this.updateCard(contactId, updates); // This will trigger apiPutLeads
                     this.showToast('Contato atualizado!', 'success');
                     // Re-render is handled by apiGetLeads
@@ -1098,26 +1113,31 @@
                 });
             }
 
-            // Salvar "Próximo Contato"
+            // Save "Next Contact"
             const saveNextContactBtn = document.getElementById('save-next-contact-btn');
             if (saveNextContactBtn) {
                 saveNextContactBtn.addEventListener('click', () => {
-                    const newDate = this.config.activeLitepicker ? this.config.activeLitepicker.getDate() : null;
-                    if (newDate) {
-                        this.updateCard(contactId, { nextContactDate: newDate.dateInstance.toISOString() }); // This will trigger apiPutLeads
+                    const activePicker = this.config.activeLitepicker;
+                    const dateVal = activePicker ? activePicker.getDate() : null; // Use active picker
+
+                    if (dateVal) {
+                        this.updateCard(contactId, { nextContactDate: dateVal.dateInstance.toISOString() });
                         this.showToast('Próximo contato agendado!', 'success');
                     } else {
-                        // Se limpou a data
                         this.updateCard(contactId, { nextContactDate: null });
                         this.showToast('Agendamento removido.', 'info');
                     }
-                });
-            }
+                 });
+             }
 
-            // Inicializar Litepicker para "Próximo Contato"
-            if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
+            // Initialize Litepicker for "Next Contact"
+            if (this.config.activeLitepicker) { // Destroy any active picker first
+                this.config.activeLitepicker.destroy();
+                this.config.activeLitepicker = null;
+            }
             const dateInput = document.getElementById('next-contact-datepicker');
-            if(dateInput) { // Apenas inicializa se o campo existir
+            if(dateInput) { // Only initialize if the field exists
+                // Create and store the new picker instance
                 this.config.activeLitepicker = new Litepicker({
                     element: dateInput,
                     singleMode: true,
@@ -1125,7 +1145,7 @@
                     format: 'DD/MM/YYYY',
                     lang: 'pt-br',
                     buttonText: { apply: 'Aplicar', cancel: 'Cancelar' },
-                    allowRepick: true, // Permite clicar de novo para limpar
+                    allowRepick: true, // Allows clicking again to clear
                 });
                 // Set the existing date if it exists
                 if (contact.nextContactDate) {
@@ -1138,28 +1158,44 @@
             const addAttrBtn = document.getElementById('add-attribute-btn');
             if(addAttrBtn) {
                 addAttrBtn.addEventListener('click', () => {
+                     // Ensure attributes array exists
+                    if (!contact.attributes) {
+                        contact.attributes = [];
+                    }
                     const newAttr = { id: this.uid(), key: '', value: '' };
                     contact.attributes.push(newAttr);
                     this.updateCard(contactId, { attributes: contact.attributes }); // This will trigger apiPutLeads
-                    // Re-render will happen via apiGetLeads
+                    // Re-render will happen via apiGetLeads, which calls renderContactDetail again
                 });
             }
+
 
             // Update Attribute
             document.querySelectorAll('.attr-input').forEach(input => {
                 input.addEventListener('change', (e) => {
-                    const attrId = e.target.closest('[data-attr-id]').dataset.attrId;
+                    const attrRow = e.target.closest('[data-attr-id]');
+                    if (!attrRow) return; // Exit if parent not found
+                    const attrId = attrRow.dataset.attrId;
                     const field = e.target.dataset.field;
                     const value = e.target.value;
+
+                    // Ensure attributes array exists
+                    if (!contact.attributes) {
+                       console.error("Contact attributes array is missing.");
+                       return;
+                    }
 
                     const attrIndex = contact.attributes.findIndex(a => a.id === attrId);
                     if (attrIndex > -1) {
                         contact.attributes[attrIndex][field] = value;
                         this.updateCard(contactId, { attributes: contact.attributes }); // This will trigger apiPutLeads
+                    } else {
+                         console.error(`Attribute with id ${attrId} not found.`);
                     }
-                });
-            });
+                 });
+             });
         },
+
 
 
         getTimelineEntryText(entry, lists) {
@@ -1173,27 +1209,30 @@
         },
 
         renderCardDrawer(card) {
+             if (!card) return; // Add null check for card
+
             const board = this.state.boards[0];
-            const availableLabels = board.availableLabels.filter(l => !card.labels.includes(l));
-            const availableMembers = board.availableMembers.filter(m => !card.members.includes(m.id));
+            const availableLabels = board.availableLabels.filter(l => !(card.labels || []).includes(l)); // Add check for card.labels
+            const availableMembers = board.availableMembers.filter(m => !(card.members || []).includes(m.id)); // Add check for card.members
+
 
             this.elements.cardDrawer.innerHTML = `
               <div class="p-6 border-b border-border flex items-center justify-between">
-                   <h3 class="text-2xl font-bold text-text">${card.name}</h3>
+                   <h3 class="text-2xl font-bold text-text">${card.name || 'Sem nome'}</h3> <!-- Add fallback -->
                    <button id="close-drawer" class="h-8 w-8 flex items-center justify-center rounded-lg text-secondary hover:bg-hover hover:text-text"><i data-lucide="x" class="h-5 w-5"></i></button>
               </div>
               <div class="flex-1 p-6 overflow-y-auto space-y-6">
                   ${this.getDrawerFieldHtml('Nome do Lead', card, 'name', 'text')}
                   ${this.getDrawerFieldHtml('Empresa (Opcional)', card, 'company', 'text')}
-                  <!-- Valor Removido -->
                   ${this.getDrawerFieldHtml('E-mail', card, 'email', 'email')}
                   ${this.getDrawerFieldHtml('Telefone (apenas números)', card, 'phone', 'tel')}
 
                    <div>
                        <label class="text-sm font-medium text-secondary">Responsáveis</label>
                        <div id="drawer-members" class="flex flex-wrap gap-2 mt-2">
-                           ${card.members.map(mId => {
+                           ${(card.members || []).map(mId => { // Add check for card.members
                                const member = board.availableMembers.find(m => m.id === mId);
+                                if (!member) return ''; // Skip if member not found
                                return `
                                <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
                                    <img src="${member.avatar}" class="h-4 w-4 rounded-full" />
@@ -1205,19 +1244,19 @@
                                <button id="add-member-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
                                <div id="member-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
                                   ${availableMembers.map(m => `
-                                   <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover flex items-center gap-2 add-member-option" data-member-id="${m.id}">
-                                       <img src="${m.avatar}" class="h-5 w-5 rounded-full" /> ${m.name}
-                                   </button>
+                                     <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover flex items-center gap-2 add-member-option" data-member-id="${m.id}">
+                                         <img src="${m.avatar}" class="h-5 w-5 rounded-full" /> ${m.name}
+                                     </button>
                                   `).join('')}
                                </div>
                            </div>
                        </div>
-                      </div>
+                    </div>
 
                    <div>
                        <label class="text-sm font-medium text-secondary">Etiquetas</label>
                        <div id="drawer-labels" class="flex flex-wrap gap-2 mt-2">
-                           ${card.labels.map(label => `
+                           ${(card.labels || []).map(label => ` <!-- Add check for card.labels -->
                                <span class="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold rounded-full bg-slate-600 text-slate-200">
                                    ${label}
                                    <button class="remove-label-btn" data-label="${label}"><i data-lucide="x" class="h-3 w-3"></i></button>
@@ -1226,15 +1265,16 @@
                            <div class="relative">
                                <button id="add-label-btn" class="px-2 py-1 text-sm font-semibold rounded-full bg-base hover:bg-hover text-secondary border border-dashed border-border"><i data-lucide="plus" class="h-3 w-3 inline-block"></i> Adicionar</button>
                                <div id="label-dropdown" class="absolute bottom-full mb-2 w-48 bg-panel border border-border rounded-lg shadow-xl p-2 hidden">
-                                   ${availableLabels.map(l => `<button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover add-label-option" data-label="${l}">${l}</button>`).join('')}
+                                    ${availableLabels.map(l => `<button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover add-label-option" data-label="${l}">${l}</button>`).join('')}
                                </div>
                            </div>
                        </div>
-                      </div>
+                    </div>
               </div>
             `;
             lucide.createIcons();
         },
+
 
         getDrawerFieldHtml(label, card, key, type) {
             return `
@@ -1255,8 +1295,11 @@
           this.elements.cardDrawer.dataset.cardId = cardId;
           this.elements.cardDrawer.classList.remove('translate-x-full');
           this.elements.drawerOverlay.classList.remove('hidden');
+           // Force reflow
+          void this.elements.drawerOverlay.offsetWidth;
           this.elements.drawerOverlay.style.opacity = 1;
         },
+
         closeDrawer() {
           this.elements.cardDrawer.classList.add('translate-x-full');
           this.elements.drawerOverlay.style.opacity = 0;
@@ -1274,6 +1317,9 @@
 
           const currentValue = card[key];
           const p = fieldElement.querySelector('p');
+           // If p is already replaced, exit
+           if (!p) return;
+
 
           const input = document.createElement('input');
           input.type = type;
@@ -1286,29 +1332,43 @@
           const save = () => {
               let newValue = type === 'number' ? parseFloat(input.value) || 0 : input.value;
               if (type === 'tel') {
-                  newValue = newValue.replace(/\D/g,''); // Remove non-digits for phone
+                   newValue = newValue.replace(/\D/g,''); // Remove non-digits for phone
               }
 
-              this.updateCard(cardId, { [key]: newValue }); // This will trigger apiPutLeads
+              // Only update if value changed
+              if (newValue !== currentValue) {
+                this.updateCard(cardId, { [key]: newValue }); // This will trigger apiPutLeads
+                this.showToast('Informação salva!', 'success');
+              }
+
 
               const newP = document.createElement('p');
               newP.className = "text-text text-lg mt-1 cursor-pointer hover:bg-hover p-2 rounded-md";
               newP.textContent = newValue || 'Não definido';
-              input.replaceWith(newP);
-              this.showToast('Informação salva!', 'success');
+
+              // Check if input is still in the DOM before replacing
+               if (input.parentNode === fieldElement) {
+                 input.replaceWith(newP);
+               }
 
               // Re-render is handled by apiGetLeads
           };
 
-          input.addEventListener('blur', save);
-          input.addEventListener('keydown', (e) => {
-              if(e.key === 'Enter') input.blur();
-              if(e.key === 'Escape') {
-                  input.value = currentValue;
-                  input.blur();
-              }
-          });
+          // Use 'blur' event for saving
+           input.addEventListener('blur', save);
+           input.addEventListener('keydown', (e) => {
+               if (e.key === 'Enter') {
+                 e.preventDefault(); // Prevent form submission if applicable
+                 input.blur(); // Trigger blur to save
+               }
+               if (e.key === 'Escape') {
+                  input.value = currentValue; // Revert value
+                  input.blur(); // Trigger blur (which will now save the original value)
+               }
+           });
+
         },
+
 
         initKanbanSortable() {
           const boardEl = this.elements.kanbanBoard;
@@ -1336,7 +1396,7 @@
 
                   board.lists.splice(evt.newIndex, 0, movedList);
                   board.lists.forEach((list, index) => list.order = index);
-                  // ATUALIZADO: Chamar API PUT
+                  // Call API PUT
                   this.apiPutLeads('Movimentação de coluna');
               },
           });
@@ -1347,37 +1407,40 @@
                  listEl.sortableInstance.destroy();
              }
              listEl.sortableInstance = new Sortable(listEl, { // Store instance
-                  group: 'cards', animation: 150, ghostClass: 'sortable-ghost',
-                  onEnd: (evt) => {
-                      const cardId = evt.item.dataset.cardId;
-                      const fromListEl = evt.from.closest('.kanban-list');
-                      const toListEl = evt.to.closest('.kanban-list');
+                 group: 'cards', animation: 150, ghostClass: 'sortable-ghost',
+                 onEnd: (evt) => {
+                     const cardId = evt.item.dataset.cardId;
+                     const fromListEl = evt.from.closest('.kanban-list');
+                     const toListEl = evt.to.closest('.kanban-list');
 
-                      // Add checks for elements and dataset
-                      if (!fromListEl || !toListEl || !fromListEl.dataset.listId || !toListEl.dataset.listId) return;
+                     // Add checks for elements and dataset
+                     if (!fromListEl || !toListEl || !fromListEl.dataset.listId || !toListEl.dataset.listId) return;
 
-                      const fromListId = fromListEl.dataset.listId;
-                      const toListId = toListEl.dataset.listId;
+                     const fromListId = fromListEl.dataset.listId;
+                     const toListId = toListEl.dataset.listId;
 
-                      const board = this.state.boards[0];
-                      const card = board.cards.find(c => c.id === cardId);
+                     const board = this.state.boards[0];
+                     const card = board.cards.find(c => c.id === cardId);
 
-                      if (card && fromListId !== toListId) {
-                          card.listId = toListId;
-                          card.timeline.push({ t: "moved", from: fromListId, to: toListId, at: new Date().toISOString() });
+                     if (card && fromListId !== toListId) {
+                         card.listId = toListId;
+                         // Ensure timeline exists
+                          if (!card.timeline) card.timeline = [];
+                         card.timeline.push({ t: "moved", from: fromListId, to: toListId, at: new Date().toISOString() });
 
-                          const toList = board.lists.find(l => l.id === toListId);
-                          if (toList) { // Check if toList exists
-                            this.runAutomations('move_to', { card, toList });
-                          }
+                         const toList = board.lists.find(l => l.id === toListId);
+                         if (toList) { // Check if toList exists
+                           this.runAutomations('move_to', { card, toList });
+                         }
 
-                          // ATUALIZADO: Chamar API PUT
-                          this.apiPutLeads(`Movimentação de lead: ${card.name}`);
-                      }
-                  },
-              });
+                         // Call API PUT
+                         this.apiPutLeads(`Movimentação de lead: ${card.name}`);
+                     }
+                 },
+             });
           });
         },
+
 
         initCalendarSortable() {
             document.querySelectorAll('#calendar-grid .cards-container').forEach(container => {
@@ -1392,7 +1455,7 @@
                         const cardId = evt.item.dataset.cardId;
                         const dateEl = evt.to.closest('[data-date]');
                          // Add checks for elements and dataset
-                        if (!dateEl || !dateEl.dataset.date) return;
+                         if (!dateEl || !dateEl.dataset.date) return;
 
                         const newDate = dateEl.dataset.date;
                         const dataSource = this.elements.calendar.calendarDataSource.value || 'nextContactDate';
@@ -1402,15 +1465,17 @@
 
                         if(cardIndex !== -1 && newDate) {
                             const oldDate = board.cards[cardIndex][dataSource];
-                            board.cards[cardIndex][dataSource] = dayjs(newDate).toISOString(); // Salva na data correta
+                            board.cards[cardIndex][dataSource] = dayjs(newDate).toISOString(); // Save in correct date
 
-                            // Adiciona na timeline
+                            // Add to timeline
                             const eventType = dataSource === 'nextContactDate' ? 'rescheduled' : 'edited';
                             const fieldName = dataSource === 'nextContactDate' ? 'Próximo Contato' : 'Data de Criação';
+                             // Ensure timeline exists
+                             if (!board.cards[cardIndex].timeline) board.cards[cardIndex].timeline = [];
 
                             board.cards[cardIndex].timeline.push({ t: eventType, from: oldDate, to: newDate, at: new Date().toISOString(), field: fieldName });
 
-                            // ATUALIZADO: Chamar API PUT
+                            // Call API PUT
                             this.apiPutLeads(`Reagendamento de lead: ${board.cards[cardIndex].name}`);
                             this.showToast(`Lead ${board.cards[cardIndex].name} movido para ${dayjs(newDate).format('DD/MM')}`, 'info');
                         }
@@ -1419,12 +1484,17 @@
             });
         },
 
+
         // --- FILTERS & SORTING ---
         renderFilterPopup() {
+             if (!this.state.viewState || !this.state.boards || !this.state.boards[0]) return; // Add checks
+
             const { filters, sortBy } = this.state.viewState;
             const board = this.state.boards[0];
-            const allOrigins = [...new Set(board.cards.map(c => c.origin))];
-            const allLabels = board.availableLabels;
+             // Ensure cards array exists before mapping
+            const allOrigins = [...new Set((board.cards || []).map(c => c.origin))];
+            const allLabels = board.availableLabels || [];
+
 
             this.elements.filterPopup.innerHTML = `
               <div class="space-y-4">
@@ -1463,7 +1533,7 @@
                                   <input type="checkbox" value="${l}" class="form-checkbox h-4 w-4 rounded text-brand-blue bg-base border-border focus:ring-brand-blue" ${filters.labels.includes(l) ? 'checked' : ''}>
                                   <span class="text-sm">${l}</span>
                               </label>
-                          `).join('')}
+                         `).join('')}
                       </div>
                    </div>
                   <div class="border-t border-border pt-4 flex justify-between items-center">
@@ -1474,10 +1544,14 @@
             this.initFilterDatepicker();
         },
 
+
         initFilterDatepicker() {
-            if (this.config.activeLitepicker) this.config.activeLitepicker.destroy();
-            const dateInput = document.getElementById('filter-date-range'); // Define here
-            if(!dateInput) return; // Sai se o input não existir (ex: em outra página)
+            if (this.config.activeLitepicker) {
+              try { this.config.activeLitepicker.destroy(); } catch (e) { console.warn("Error destroying previous Litepicker:", e); }
+              this.config.activeLitepicker = null;
+            }
+            const dateInput = document.getElementById('filter-date-range');
+            if(!dateInput) return; // Exit if input doesn't exist
 
             this.config.activeLitepicker = new Litepicker({
                 element: dateInput,
@@ -1496,8 +1570,8 @@
                     picker.on('selected', (date1, date2) => {
                         // Ensure dates are valid before setting state
                         if (date1 && date2) {
-                          this.state.viewState.filters.dateRange = { start: date1.dateInstance, end: date2.dateInstance };
-                          // ATUALIZADO: Chamar API PUT
+                          this.state.viewState.filters.dateRange = { start: date1.dateInstance.toISOString(), end: date2.dateInstance.toISOString() }; // Store as ISO strings
+                          // Call API PUT
                           this.apiPutLeads('Alteração de filtro de data');
                         } else {
                            // Handle case where selection might be cleared or invalid
@@ -1508,18 +1582,27 @@
                      // Add event listener for clearing
                      picker.on('clear:selection', () => {
                          this.state.viewState.filters.dateRange = { start: null, end: null };
+                         dateInput.value = ''; // Clear input value as well
                          this.apiPutLeads('Limpeza de filtro de data');
                      });
                 }
             });
 
             const { dateRange } = this.state.viewState.filters;
+             // Ensure dateRange and its properties exist before setting
             if(dateRange && dateRange.start && dateRange.end) {
-                this.config.activeLitepicker.setDateRange(dateRange.start, dateRange.end);
-            } else if (dateInput) { // Check if element exists before setting value
-                dateInput.value = ''; // Clear input if no range is set
-            }
+               // Convert ISO strings back to Date objects for setDateRange
+               try {
+                   this.config.activeLitepicker.setDateRange(new Date(dateRange.start), new Date(dateRange.end));
+               } catch (e) {
+                   console.error("Error setting date range in Litepicker:", e);
+                   dateInput.value = ''; // Clear input if dates are invalid
+               }
+             } else {
+                 dateInput.value = ''; // Clear input if no range is set
+             }
         },
+
 
         updateFilterIndicator() {
              const { filters } = this.state.viewState;
@@ -1544,12 +1627,12 @@
         },
 
         showModal(config) {
-            const { title, content, onConfirm, confirmText = 'Confirmar', confirmClass = 'bg-red-600 hover:bg-red-700' } = config;
+            const { title, content, onConfirm, confirmText = 'Confirmar', confirmClass = 'bg-red-600 hover:bg-red-700', showCancel = true } = config; // Added showCancel
             this.elements.modalBox.innerHTML = `
               <h3 class="text-xl font-bold mb-2">${title}</h3>
               <div class="text-secondary mb-6">${content}</div>
               <div class="flex justify-end gap-3">
-                  <button id="modal-cancel" class="h-9 px-4 rounded-lg text-sm font-semibold bg-panel border border-border hover:bg-hover">Cancelar</button>
+                  ${showCancel ? `<button id="modal-cancel" class="h-9 px-4 rounded-lg text-sm font-semibold bg-panel border border-border hover:bg-hover">Cancelar</button>` : ''}
                   ${onConfirm ? `<button id="modal-confirm" class="h-9 px-4 rounded-lg text-sm font-semibold text-white ${confirmClass}">${confirmText}</button>` : ''}
               </div>
             `;
@@ -1562,28 +1645,52 @@
             const confirmBtn = document.getElementById('modal-confirm');
             const cancelBtn = document.getElementById('modal-cancel');
 
-            const closeModal = () => {
-                this.elements.modalOverlay.style.opacity = 0;
-                this.elements.modalBox.style.transform = 'scale(0.95)';
-                setTimeout(() => this.elements.modalOverlay.classList.add('hidden'), 300);
+            // Store bound functions to remove them later
+            const closeModalHandler = () => this.closeModal();
+            const confirmHandler = () => {
+                if (onConfirm) onConfirm();
+                this.closeModal();
+            };
+            const overlayClickHandler = (e) => {
+                if (e.target === this.elements.modalOverlay) this.closeModal();
             };
 
-            if(onConfirm && confirmBtn) { // Add null check for confirmBtn
-                confirmBtn.onclick = () => {
-                    onConfirm();
-                    closeModal();
-                };
-            }
+            // Assign handlers
+            if (confirmBtn) confirmBtn.onclick = confirmHandler;
+            if (cancelBtn) cancelBtn.onclick = closeModalHandler;
+            this.elements.modalOverlay.onclick = overlayClickHandler;
 
-            if(cancelBtn) { // Add null check for cancelBtn
-             cancelBtn.onclick = closeModal;
-            }
-            this.elements.modalOverlay.onclick = (e) => {
-                if(e.target === this.elements.modalOverlay) closeModal();
-            }
+             // Store handlers on the element to remove later
+             this.elements.modalOverlay._closeModalHandler = closeModalHandler;
+             this.elements.modalOverlay._confirmHandler = confirmHandler;
+             this.elements.modalOverlay._overlayClickHandler = overlayClickHandler;
+
         },
 
-        // Modal de Logs
+        closeModal() {
+            // Remove event listeners before hiding
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+            if (confirmBtn && this.elements.modalOverlay._confirmHandler) confirmBtn.onclick = null;
+            if (cancelBtn && this.elements.modalOverlay._closeModalHandler) cancelBtn.onclick = null;
+            if (this.elements.modalOverlay._overlayClickHandler) this.elements.modalOverlay.onclick = null;
+
+            // Clear stored handlers
+            this.elements.modalOverlay._closeModalHandler = null;
+            this.elements.modalOverlay._confirmHandler = null;
+            this.elements.modalOverlay._overlayClickHandler = null;
+
+            // Animate out
+            this.elements.modalOverlay.style.opacity = 0;
+            this.elements.modalBox.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.elements.modalOverlay.classList.add('hidden');
+                this.elements.modalBox.innerHTML = ''; // Clear content after hiding
+            }, 300);
+        },
+
+
+        // Logs Modal
         showLogsModal() {
             const logsHtml = this.logs.length > 0
                 ? [...this.logs].reverse().map(log => {
@@ -1608,34 +1715,36 @@
                 onConfirm: () => {
                     this.logs = [];
                     this.addLog('Logs limpos.', 'info');
-                    this.showLogsModal(); // Re-render modal
+                    // No need to call showLogsModal again, renderLogsInModal will update if modal stays open
+                    this.renderLogsInModal(); // Immediately update the content
                 }
             });
             lucide.createIcons();
         },
 
-        // Renderiza logs no modal se estiver aberto
+
+        // Render logs in modal if open
         renderLogsInModal() {
             const modalArea = document.getElementById('logs-content-area');
             if (modalArea && !this.elements.modalOverlay.classList.contains('hidden')) { // Check if modal is open
                  const logsHtml = this.logs.length > 0
-                    ? [...this.logs].reverse().map(log => {
-                        const time = dayjs(log.time).format('HH:mm:ss');
-                        const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
-                        const icon = log.type === 'error' ? 'alert-circle' : (log.type === 'success' ? 'check-circle' : 'arrow-right-circle');
-                        return `<div class="flex items-center gap-2 ${color}">
-                                    <i data-lucide="${icon}" class="h-3 w-3 flex-shrink-0"></i>
-                                    <span class="text-xs mr-1">[${time}]</span>
-                                    <span class="text-sm">${log.message}</span>
-                                </div>`;
-                    }).join('')
-                    : '<p class="text-secondary">Nenhum log registrado.</p>';
-                modalArea.innerHTML = logsHtml;
-                lucide.createIcons();
+                     ? [...this.logs].reverse().map(log => {
+                         const time = dayjs(log.time).format('HH:mm:ss');
+                         const color = log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-green-400' : 'text-slate-400');
+                         const icon = log.type === 'error' ? 'alert-circle' : (log.type === 'success' ? 'check-circle' : 'arrow-right-circle');
+                         return `<div class="flex items-center gap-2 ${color}">
+                                     <i data-lucide="${icon}" class="h-3 w-3 flex-shrink-0"></i>
+                                     <span class="text-xs mr-1">[${time}]</span>
+                                     <span class="text-sm">${log.message}</span>
+                                 </div>`;
+                     }).join('')
+                     : '<p class="text-secondary">Nenhum log registrado.</p>';
+                 modalArea.innerHTML = logsHtml;
+                 lucide.createIcons();
             }
         },
 
-        // Função agora cria o lead e redireciona
+        // Function now creates lead and redirects
         createNewLeadAndRedirect(listId = 'novo') {
             const newCard = {
                 id: this.uid(),
@@ -1649,7 +1758,7 @@
                 origin: 'Manual',
                 priority: 'media',
                 labels: [],
-                members: ['AC'],
+                members: ['AC'], // Default member
                 createdAt: new Date().toISOString(),
                 dueDate: null,
                 nextContactDate: null,
@@ -1662,15 +1771,15 @@
                 biografia: ""
             };
             this.state.boards[0].cards.push(newCard);
-            this.state.contacts.push({...newCard});
+            this.state.contacts.push({...newCard}); // Add to contacts as well
 
-            // ATUALIZADO: Chamar API PUT
             this.apiPutLeads('Criação de novo lead');
             this.showToast('Novo lead criado. Preencha os detalhes.', 'success');
 
-            // Redireciona para a página de detalhes
+            // Redirect to detail page
             window.location.hash = `#/contacts/${newCard.id}`;
         },
+
 
         showNewListModal() {
             const content = `<form id="new-list-form"><label class="text-sm font-medium text-secondary">Nome da Etapa</label><input name="name" required class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" /></form>`;
@@ -1678,36 +1787,62 @@
                 title: 'Criar Nova Etapa', content, confirmText: 'Criar Etapa', confirmClass: 'bg-brand-blue hover:bg-blue-700',
                 onConfirm: () => {
                     const form = document.getElementById('new-list-form');
-                    const name = new FormData(form).get('name');
-                    if (!name) return;
+                    const nameInput = form.querySelector('input[name="name"]'); // Get input element
+                    const name = nameInput ? nameInput.value.trim() : null; // Get trimmed value
+                    if (!name) {
+                         this.showToast('Nome da etapa não pode ser vazio.', 'error');
+                         // Re-show modal or highlight input if needed
+                          nameInput?.classList.add('border-red-500'); // Example: highlight error
+                         return; // Prevent closing modal
+                    };
                     const board = this.state.boards[0];
-                    const newList = { id: name.toLowerCase().replace(/\s/g, '-'), name: name, order: board.lists.length };
+                    const newListId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); // Sanitize ID
+
+                     // Check if list ID already exists
+                     if (board.lists.some(list => list.id === newListId)) {
+                         this.showToast(`Etapa com ID '${newListId}' já existe. Escolha um nome diferente.`, 'error');
+                         nameInput?.classList.add('border-red-500');
+                         this.showNewListModal(); // Re-show the modal keeping the input value
+                         const existingInput = document.getElementById('new-list-form')?.querySelector('input[name="name"]');
+                         if(existingInput) existingInput.value = name; // Restore value
+                         return; // Prevent closing original modal
+                     }
+
+
+                    const newList = { id: newListId, name: name, order: board.lists.length };
                     board.lists.push(newList);
 
-                    // ATUALIZADO: Chamar API PUT
                     this.apiPutLeads('Criação de nova etapa');
                     this.showToast('Nova etapa criada!', 'success');
+                    // Modal closes automatically via confirmHandler
                 }
             });
+             // Focus the input when the modal appears
+             setTimeout(() => {
+                 const input = document.getElementById('new-list-form')?.querySelector('input[name="name"]');
+                 input?.focus();
+             }, 100); // Small delay for modal transition
         },
 
-        // Adicionada lógica de "Canal Preferido"
+
+        // Added "Preferred Channel" logic
         showSendMessageModal(card) {
+             if (!card || !card.attributes) return; // Add checks
             const preferredChannelAttr = card.attributes.find(a => a.key === 'Canal Preferido');
             const preferredChannel = preferredChannelAttr ? preferredChannelAttr.value : null;
 
             if (preferredChannel === 'WhatsApp' && card.phone) {
                 window.open(`https://wa.me/${card.phone || ''}`, '_blank');
                 this.showToast(`Abrindo WhatsApp para ${card.name}`, 'info');
-                return; // Pula o modal
+                return; // Skip modal
             }
             if (preferredChannel === 'Instagram') {
-                window.open(`https://ig.me/m/USUARIO_INSTA_MOCK`, '_blank'); // Link mock
+                window.open(`https://ig.me/m/USUARIO_INSTA_MOCK`, '_blank'); // Mock link
                 this.showToast(`Abrindo Instagram para ${card.name}`, 'info');
-                return; // Pula o modal
+                return; // Skip modal
             }
 
-            // Lógica original do modal
+            // Original modal logic
             const content = `
               <p class="text-secondary mb-4">Para qual canal você deseja enviar uma mensagem para ${card.name}?</p>
               <div class="space-y-3">
@@ -1724,8 +1859,132 @@
             this.showModal({
                 title: 'Enviar Mensagem',
                 content: content,
+                 showCancel: false // No need for cancel button here
             });
             lucide.createIcons();
+        },
+
+        // --- List Actions ---
+        showListActionsDropdown(buttonElement, listId) {
+            this.hideListActionsDropdown(); // Close any existing dropdown
+
+            const rect = buttonElement.getBoundingClientRect();
+            const dropdown = document.createElement('div');
+            dropdown.className = 'list-actions-dropdown'; // Use existing style
+            dropdown.style.left = `${rect.left}px`;
+            dropdown.style.top = `${rect.bottom + window.scrollY + 4}px`; // Position below button
+            dropdown.dataset.listId = listId; // Store listId
+
+            dropdown.innerHTML = `
+                <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover list-rename-btn">
+                    <i data-lucide="pencil" class="h-3 w-3 inline-block mr-2"></i>Renomear
+                </button>
+                <button class="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-hover text-red-500 list-delete-btn">
+                     <i data-lucide="trash-2" class="h-3 w-3 inline-block mr-2"></i>Excluir
+                 </button>
+            `;
+
+            this.elements.listActionsContainer.appendChild(dropdown);
+            lucide.createIcons();
+            this.config.openListActionsDropdown = dropdown; // Track the open dropdown
+
+            // Add listeners for the new buttons
+            dropdown.querySelector('.list-rename-btn').addEventListener('click', () => {
+                this.showRenameListModal(listId);
+                this.hideListActionsDropdown();
+            });
+            dropdown.querySelector('.list-delete-btn').addEventListener('click', () => {
+                this.confirmDeleteList(listId);
+                this.hideListActionsDropdown();
+            });
+        },
+
+        hideListActionsDropdown() {
+            if (this.config.openListActionsDropdown) {
+                this.config.openListActionsDropdown.remove();
+                this.config.openListActionsDropdown = null;
+            }
+        },
+
+        showRenameListModal(listId) {
+            const list = this.state.boards[0].lists.find(l => l.id === listId);
+            if (!list) return;
+
+            const content = `
+                <form id="rename-list-form">
+                    <label class="text-sm font-medium text-secondary">Novo nome da Etapa</label>
+                    <input name="name" required class="w-full mt-1 bg-base border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" value="${list.name}" />
+                 </form>
+            `;
+            this.showModal({
+                title: 'Renomear Etapa', content, confirmText: 'Salvar', confirmClass: 'bg-brand-blue hover:bg-blue-700',
+                onConfirm: () => {
+                    const form = document.getElementById('rename-list-form');
+                     const nameInput = form.querySelector('input[name="name"]');
+                     const newName = nameInput ? nameInput.value.trim() : null;
+
+                    if (!newName) {
+                         this.showToast('Nome da etapa não pode ser vazio.', 'error');
+                         nameInput?.classList.add('border-red-500');
+                         // Re-show modal keeping value
+                         this.showRenameListModal(listId);
+                         const existingInput = document.getElementById('rename-list-form')?.querySelector('input[name="name"]');
+                         if(existingInput) existingInput.value = newName || list.name; // Restore value or original
+                         return;
+                    }
+                     // Check if name is unchanged
+                     if (newName === list.name) {
+                         this.closeModal(); // Just close if name hasn't changed
+                         return;
+                     }
+
+                    const listIndex = this.state.boards[0].lists.findIndex(l => l.id === listId);
+                    if (listIndex > -1) {
+                        this.state.boards[0].lists[listIndex].name = newName;
+                        this.apiPutLeads('Renomear etapa');
+                        this.showToast('Etapa renomeada!', 'success');
+                    }
+                     // Modal closes automatically
+                }
+            });
+             // Focus and select text
+             setTimeout(() => {
+                 const input = document.getElementById('rename-list-form')?.querySelector('input[name="name"]');
+                 input?.focus();
+                 input?.select();
+             }, 100);
+        },
+
+        confirmDeleteList(listId) {
+            const list = this.state.boards[0].lists.find(l => l.id === listId);
+            if (!list) return;
+
+            // Count cards in the list
+             const cardsInList = this.state.boards[0].cards.filter(c => c.listId === listId).length;
+             let warningMessage = `Tem certeza que deseja excluir a etapa "${list.name}"?`;
+             if (cardsInList > 0) {
+                 warningMessage += ` ${cardsInList} lead${cardsInList > 1 ? 's' : ''} nesta etapa ${cardsInList > 1 ? 'serão afetados' : 'será afetado'} (não ${cardsInList > 1 ? 'serão' : 'será'} mais exibido${cardsInList > 1 ? 's' : ''} no quadro).`;
+             }
+             warningMessage += ' Esta ação é irreversível.';
+
+
+            this.showModal({
+                title: 'Excluir Etapa?',
+                content: warningMessage,
+                confirmText: 'Excluir',
+                confirmClass: 'bg-red-600 hover:bg-red-700',
+                onConfirm: () => {
+                    const listIndex = this.state.boards[0].lists.findIndex(l => l.id === listId);
+                    if (listIndex > -1) {
+                        this.state.boards[0].lists.splice(listIndex, 1);
+                         // Note: Cards in this list are now orphaned but remain in the main cards array.
+                         // They won't render in the board view unless moved or logic is added.
+                         this.addLog(`Etapa "${list.name}" (${listId}) excluída. ${cardsInList} cards órfãos.`, 'info');
+                        this.apiPutLeads('Excluir etapa');
+                        this.showToast(`Etapa "${list.name}" excluída.`, 'info');
+                    }
+                }
+            });
         },
 
 
@@ -1733,7 +1992,6 @@
         attachEventListeners() {
           this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
           this.elements.drawerOverlay.addEventListener('click', () => this.closeDrawer());
-          // Chama a nova função de criação/redirecionamento
           this.elements.addNewLeadHeaderBtn.addEventListener('click', () => this.createNewLeadAndRedirect());
           this.elements.refreshDataBtn.addEventListener('click', () => this.apiGetLeads('Atualização manual'));
           this.elements.showLogsBtn.addEventListener('click', () => this.showLogsModal());
@@ -1744,182 +2002,191 @@
              if (currentView === 'board' || currentView === 'list') {
                  this.state.viewState.activeMainView = currentView === 'board' ? 'list' : 'board';
                  this.config.previousMainView = this.state.viewState.activeMainView; // Update previous view
-                 this.apiPutLeads('Troca de visão (kanban/lista)'); // Salva a troca de visão
              } else { // If on calendar, just switch main view state without rendering yet
                  this.state.viewState.activeMainView = this.config.previousMainView === 'board' ? 'list' : 'board';
                  this.config.previousMainView = this.state.viewState.activeMainView;
-                 this.apiPutLeads('Troca de visão (kanban/lista)'); // Salva a troca de visão
              }
-             // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
+              this.apiPutLeads('Troca de visão (kanban/lista)');
            });
 
            // Calendar View Toggle
            this.elements.calendarViewToggle.addEventListener('click', () => {
              const currentView = this.state.viewState.activeMainView;
              if (currentView === 'calendar') {
-                 // Return to previous main view (board or list)
                  this.state.viewState.activeMainView = this.config.previousMainView;
              } else {
-                 // Go to calendar, remember current main view
                  this.config.previousMainView = currentView;
                  this.state.viewState.activeMainView = 'calendar';
              }
-             this.apiPutLeads('Troca de visão (calendário)'); // Salva a troca de visão
-              // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
+              this.apiPutLeads('Troca de visão (calendário)');
            });
 
           this.elements.filterBtn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              this.elements.filterPopup.classList.toggle('hidden');
-              if(!this.elements.filterPopup.classList.contains('hidden')) {
-                  this.initFilterDatepicker(); // Re-init datepicker every time it opens
-              }
+             e.stopPropagation();
+              this.hideListActionsDropdown(); // Close list actions if open
+             this.elements.filterPopup.classList.toggle('hidden');
+             if(!this.elements.filterPopup.classList.contains('hidden')) {
+                 this.initFilterDatepicker();
+             }
           });
 
           this.elements.filterPopup.addEventListener('change', (e) => {
-              if (e.target.id === 'sort-select') {
-                  this.state.viewState.sortBy = e.target.value;
+             if (e.target.id === 'sort-select') {
+                 this.state.viewState.sortBy = e.target.value;
+             }
+             if (e.target.closest('#origin-filters')) {
+                 this.state.viewState.filters.origin = [...document.querySelectorAll('#origin-filters input:checked')].map(el => el.value);
+             }
+              if (e.target.closest('#label-filters')) {
+                 this.state.viewState.filters.labels = [...document.querySelectorAll('#label-filters input:checked')].map(el => el.value);
               }
-              if (e.target.closest('#origin-filters')) {
-                  this.state.viewState.filters.origin = [...document.querySelectorAll('#origin-filters input:checked')].map(el => el.value);
-              }
-               if (e.target.closest('#label-filters')) {
-                  this.state.viewState.filters.labels = [...document.querySelectorAll('#label-filters input:checked')].map(el => el.value);
-               }
-               // ATUALIZADO: Chamar API PUT
-               this.apiPutLeads('Alteração de filtro/ordem');
-               // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
+              this.apiPutLeads('Alteração de filtro/ordem');
           });
 
           this.elements.filterPopup.addEventListener('click', (e) => {
-              e.stopPropagation(); // Prevents popup from closing
-              if(e.target.id === 'clear-filters-btn') {
-                  this.state.viewState.filters = { origin: [], labels: [], dateRange: { start: null, end: null } };
-                  this.state.viewState.sortBy = 'default';
-                  if (this.config.activeLitepicker) this.config.activeLitepicker.clearSelection();
-                  // ATUALIZADO: Chamar API PUT
-                  this.apiPutLeads('Limpeza de filtros');
-                  this.renderFilterPopup(); // Re-render o popup com valores limpos
-                   // No need to call renderKanbanView() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
-              }
+             e.stopPropagation(); // Prevents popup from closing itself
+             if(e.target.id === 'clear-filters-btn') {
+                 this.state.viewState.filters = { origin: [], labels: [], dateRange: { start: null, end: null } };
+                 this.state.viewState.sortBy = 'default';
+                  // Safely try to clear Litepicker selection
+                  try {
+                       if (this.config.activeLitepicker) this.config.activeLitepicker.clearSelection();
+                       const dateInput = document.getElementById('filter-date-range');
+                       if (dateInput) dateInput.value = ''; // Also clear input field
+                  } catch(err) { console.warn("Error clearing Litepicker:", err); }
+
+                 this.apiPutLeads('Limpeza de filtros');
+                 this.renderFilterPopup(); // Re-render the popup with cleared values
+             }
           });
 
+
+          // Global click listener to close popups
           document.addEventListener('click', (e) => {
-              if (this.elements.filterPopup && !this.elements.filterPopup.contains(e.target) && this.elements.filterBtn && !this.elements.filterBtn.contains(e.target)) {
-                  this.elements.filterPopup.classList.add('hidden');
+             // Close Filter Popup
+             if (this.elements.filterPopup && !this.elements.filterPopup.classList.contains('hidden') && !this.elements.filterPopup.contains(e.target) && !this.elements.filterBtn.contains(e.target)) {
+                 this.elements.filterPopup.classList.add('hidden');
+             }
+              // Close List Actions Dropdown
+              if (this.config.openListActionsDropdown && !this.config.openListActionsDropdown.contains(e.target) && !e.target.closest('.list-actions-btn')) {
+                  this.hideListActionsDropdown();
               }
+               // Close Label/Member dropdowns in drawer
+              const labelDropdown = document.getElementById('label-dropdown');
+              const memberDropdown = document.getElementById('member-dropdown');
+              if (labelDropdown && !labelDropdown.classList.contains('hidden') && !labelDropdown.contains(e.target) && !e.target.closest('#add-label-btn')) {
+                  labelDropdown.classList.add('hidden');
+              }
+               if (memberDropdown && !memberDropdown.classList.contains('hidden') && !memberDropdown.contains(e.target) && !e.target.closest('#add-member-btn')) {
+                   memberDropdown.classList.add('hidden');
+               }
           });
+
 
           this.elements.cardDrawer.addEventListener('click', (e) => {
-              if (e.target.closest('#close-drawer')) this.closeDrawer();
-              const field = e.target.closest('.editable-field p');
-              if (field) this.makeFieldEditable(field.parentElement);
+             if (e.target.closest('#close-drawer')) this.closeDrawer();
+             const field = e.target.closest('.editable-field p');
+             if (field) this.makeFieldEditable(field.parentElement);
 
-              // Label Logic
-              const addLabelBtn = e.target.closest('#add-label-btn');
-              if(addLabelBtn) document.getElementById('label-dropdown').classList.toggle('hidden');
-              const addLabelOption = e.target.closest('.add-label-option');
-              if(addLabelOption) {
-                  const cardId = this.elements.cardDrawer.dataset.cardId;
-                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                   if (card) { // Add null check
+             // Label Logic
+             const addLabelBtn = e.target.closest('#add-label-btn');
+             const labelDropdown = document.getElementById('label-dropdown');
+             if(addLabelBtn && labelDropdown) labelDropdown.classList.toggle('hidden');
+
+             const addLabelOption = e.target.closest('.add-label-option');
+             if(addLabelOption && labelDropdown) {
+                 const cardId = this.elements.cardDrawer.dataset.cardId;
+                 const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  if (card) {
+                     if (!card.labels) card.labels = []; // Ensure labels array exists
                      card.labels.push(addLabelOption.dataset.label);
-                     this.updateCard(cardId, { labels: card.labels }); // Dispara API
-                   }
-              }
-              const removeLabelBtn = e.target.closest('.remove-label-btn');
-              if(removeLabelBtn) {
-                  const cardId = this.elements.cardDrawer.dataset.cardId;
-                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                   if (card) { // Add null check
+                     this.updateCard(cardId, { labels: card.labels });
+                  }
+                 labelDropdown.classList.add('hidden'); // Close dropdown after selection
+             }
+             const removeLabelBtn = e.target.closest('.remove-label-btn');
+             if(removeLabelBtn) {
+                 const cardId = this.elements.cardDrawer.dataset.cardId;
+                 const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  if (card && card.labels) { // Check labels exist
                      const newLabels = card.labels.filter(l => l !== removeLabelBtn.dataset.label);
-                     this.updateCard(cardId, { labels: newLabels }); // Dispara API
-                   }
-              }
+                     this.updateCard(cardId, { labels: newLabels });
+                  }
+             }
 
-              // Member Logic
-              const addMemberBtn = e.target.closest('#add-member-btn');
-              if(addMemberBtn) document.getElementById('member-dropdown').classList.toggle('hidden');
-              const addMemberOption = e.target.closest('.add-member-option');
-              if(addMemberOption) {
-                  const cardId = this.elements.cardDrawer.dataset.cardId;
-                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                   if (card) { // Add null check
+             // Member Logic
+             const addMemberBtn = e.target.closest('#add-member-btn');
+              const memberDropdown = document.getElementById('member-dropdown');
+             if(addMemberBtn && memberDropdown) memberDropdown.classList.toggle('hidden');
+
+             const addMemberOption = e.target.closest('.add-member-option');
+             if(addMemberOption && memberDropdown) {
+                 const cardId = this.elements.cardDrawer.dataset.cardId;
+                 const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  if (card) {
+                     if (!card.members) card.members = []; // Ensure members array exists
                      card.members.push(addMemberOption.dataset.memberId);
-                     this.updateCard(cardId, { members: card.members }); // Dispara API
-                   }
-              }
-              const removeMemberBtn = e.target.closest('.remove-member-btn');
-              if(removeMemberBtn) {
-                  const cardId = this.elements.cardDrawer.dataset.cardId;
-                  const card = this.state.boards[0].cards.find(c => c.id === cardId);
-                   if (card) { // Add null check
+                     this.updateCard(cardId, { members: card.members });
+                  }
+                 memberDropdown.classList.add('hidden'); // Close dropdown
+             }
+             const removeMemberBtn = e.target.closest('.remove-member-btn');
+             if(removeMemberBtn) {
+                 const cardId = this.elements.cardDrawer.dataset.cardId;
+                 const card = this.state.boards[0].cards.find(c => c.id === cardId);
+                  if (card && card.members) { // Check members exist
                      const newMembers = card.members.filter(m => m !== removeMemberBtn.dataset.memberId);
-                     this.updateCard(cardId, { members: newMembers }); // Dispara API
-                   }
-              }
+                     this.updateCard(cardId, { members: newMembers });
+                  }
+             }
           });
 
+
+          // Delegated event listener for dynamic content in viewsContainer
           this.elements.viewsContainer.addEventListener('click', (e) => {
-              const cardElement = e.target.closest('.kanban-card, .list-view-row'); // Added list-view-row
+              const cardElement = e.target.closest('.kanban-card, .list-view-row');
               const addLeadBtn = e.target.closest('.add-lead-in-list');
               const sendMessageBtn = e.target.closest('.card-send-message');
-              const deleteBtn = e.target.closest('.card-delete-btn');
+              const listActionsBtn = e.target.closest('.list-actions-btn'); // New
 
-              if (sendMessageBtn) {
+              if (listActionsBtn) { // Handle list actions button click
                   e.stopPropagation();
-                  const cardId = sendMessageBtn.closest('[data-card-id]')?.dataset.cardId; // Optional chaining
+                  const listId = listActionsBtn.dataset.listId;
+                  this.showListActionsDropdown(listActionsBtn, listId);
+              } else if (sendMessageBtn) {
+                  e.stopPropagation();
+                  const cardId = sendMessageBtn.closest('[data-card-id]')?.dataset.cardId;
                   if (cardId) {
                       const card = this.state.boards[0].cards.find(c => c.id === cardId);
                       if (card) this.showSendMessageModal(card);
                   }
-              } else if (deleteBtn) {
-                  e.stopPropagation();
-                  const cardId = deleteBtn.dataset.cardId;
-                   if (cardId) { // Add check
-                     this.showModal({
-                         title: 'Excluir Lead?', content: 'Esta ação é irreversível. Você tem certeza que deseja excluir este lead?',
-                         confirmText: 'Excluir',
-                         confirmClass: 'bg-red-600 hover:bg-red-700',
-                         onConfirm: () => {
-                             this.state.boards[0].cards = this.state.boards[0].cards.filter(c => c.id !== cardId);
-                             this.state.contacts = this.state.contacts.filter(c => c.id !== cardId);
-                             this.apiPutLeads('Exclusão de lead');
-                             this.showToast('Lead excluído.', 'info');
-                         }
-                     });
-                   }
-              } else if (cardElement && cardElement.dataset.cardId) { // Add check for dataset.cardId
-                  if(cardElement.closest('#calendar-grid')){
-                       // Abre a página de detalhes
-                       window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
-                  } else {
-                       // Navigate to contact detail from Kanban card OR List view row
-                       window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
-                  }
-              } else if (addLeadBtn && addLeadBtn.dataset.listId) { // Add check for dataset.listId
-                  // Chama a nova função de criação/redirecionamento
+              } else if (cardElement && cardElement.dataset.cardId) {
+                  // Navigate to contact detail from Kanban card, List view row, or Calendar card
+                  window.location.hash = `#/contacts/${cardElement.dataset.cardId}`;
+              } else if (addLeadBtn && addLeadBtn.dataset.listId) {
                   this.createNewLeadAndRedirect(addLeadBtn.dataset.listId);
               }
+              // Clicking anywhere else in viewsContainer that isn't handled above might close popups via the global listener
           });
+
 
           this.elements.globalSearch.addEventListener('input', (e) => this.renderKanbanView()); // Re-render on search input
           document.addEventListener('keydown', (e) => {
               if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
                   e.preventDefault();
-                  this.elements.globalSearch.focus();
+                   if (this.elements.globalSearch) this.elements.globalSearch.focus(); // Add check
               }
               if (e.key === 'Escape') {
                   this.closeDrawer();
                   this.elements.filterPopup.classList.add('hidden');
+                   this.hideListActionsDropdown(); // Close dropdown on escape
               }
           });
 
-          // Listener para o seletor de data do calendário
+          // Listener for calendar data source selector
           this.elements.calendar.calendarDataSource.addEventListener('change', (e) => {
              this.state.viewState.calendarDataSource = e.target.value; // Save selection to state
-             this.apiPutLeads('Mudança de fonte de dados do calendário'); // Save state change (optional but good practice)
-             // No need to call renderCalendar() here, apiPutLeads -> apiGetLeads -> handleRouteChange will do it
+             this.apiPutLeads('Mudança de fonte de dados do calendário'); // Save state change
           });
 
           this.elements.calendar.prevBtn.addEventListener('click', () => {
@@ -1943,4 +2210,5 @@
   </script>
 
 </body>
+
 </html>
